@@ -18,7 +18,7 @@ public class NameNode {
 	/**
 	 * 负责管理集群中所有的Datanode的组件
 	 */
-	private org.mac.fds.namenode.server.DataNodeManager datanodeManager;
+	private DataNodeManager datanodeManager;
 	/**
 	 * NameNode对外提供rpc接口的server，可以响应请求
 	 */
@@ -33,28 +33,22 @@ public class NameNode {
 	 */
 	private void initialize() {
 		this.namesystem = new FSNamesystem();
-		this.datanodeManager = new org.mac.fds.namenode.server.DataNodeManager();
-		this.rpcServer = new NameNodeRpcServer(this.namesystem, this.datanodeManager);  
-		this.rpcServer.start();
+		this.datanodeManager = new DataNodeManager();
+		this.rpcServer = new NameNodeRpcServer(this.namesystem, this.datanodeManager);
 	}
 	
 	/**
 	 * 让NameNode运行起来
 	 */
-	private void run() {
-		try {
-			while(shouldRun) {
-				Thread.sleep(1000);  
-			}  
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public void start() throws Exception{
+		rpcServer.start();
+		rpcServer.blockUntilShutdown();
 	}
 		
 	public static void main(String[] args) throws Exception {		
-		org.mac.fds.namenode.server.NameNode namenode = new org.mac.fds.namenode.server.NameNode();
+		NameNode namenode = new NameNode();
 		namenode.initialize();
-		namenode.run();
+		namenode.start();
 	}
 	
 }

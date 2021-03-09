@@ -10,6 +10,7 @@
   <modules>
     <module>dfs-namenode</module>
     <module>dfs-datanode</module>
+    <module>dfs-rpc</module>
   </modules>
 
   <name>distributed-filesystem</name>

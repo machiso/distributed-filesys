@@ -14,11 +14,11 @@ public class FSNamesystem {
 	/**
 	 * 负责管理edits log写入磁盘的组件
 	 */
-	private org.mac.fds.namenode.server.FSEditlog editlog;
+	private FSEditlog editlog;
 	
 	public FSNamesystem() {
 		this.directory = new FSDirectory();
-		this.editlog = new org.mac.fds.namenode.server.FSEditlog();
+		this.editlog = new FSEditlog();
 	}
 	
 	/**

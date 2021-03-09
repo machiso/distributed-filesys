@@ -1,6 +1,11 @@
 package org.machi.dfs;
 
-import java.util.*;
+import org.machi.dfs.DataNodeInfo;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -11,69 +16,75 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DataNodeManager {
 
 	/**
-	 * 内存中维护的datanode列表
+	 * 集群中所有的datanode
 	 */
-	private Map<String,DataNodeInfo> datanodes = new ConcurrentHashMap<String,DataNodeInfo>();
+	private Map<String, DataNodeInfo> datanodes =
+			new ConcurrentHashMap<String, DataNodeInfo>();
 
-
-	/**
-	 * 开启心跳检测机制
-	 */
 	public DataNodeManager() {
-		new DataNodeAliveMonitor().run();
+		new DataNodeAliveMonitor().start();
 	}
 
 	/**
 	 * datanode进行注册
-	 * @param ip 
+	 * @param ip
 	 * @param hostname
 	 */
 	public Boolean register(String ip, String hostname) {
 		DataNodeInfo datanode = new DataNodeInfo(ip, hostname);
-		datanodes.put(ip+"-"+hostname,datanode);
+		datanodes.put(ip + "-" + hostname, datanode);
+		System.out.println("DataNode注册：ip=" + ip + ",hostname=" + hostname);
 		return true;
 	}
 
-
 	/**
-	 * datanode心跳检测
+	 * datanode进行心跳
 	 * @param ip
 	 * @param hostname
 	 * @return
 	 */
-	public Boolean heartBeat(String ip, String hostname) {
-		DataNodeInfo dataNodeInfo = new DataNodeInfo(ip,hostname);
-		dataNodeInfo.setLastHeatBeatTime(System.currentTimeMillis());
+	public Boolean heartbeat(String ip, String hostname) {
+		DataNodeInfo datanode = datanodes.get(ip + "-" + hostname);
+		datanode.setLastHeatBeatTime(System.currentTimeMillis());
+		System.out.println("DataNode发送心跳：ip=" + ip + ",hostname=" + hostname);
 		return true;
 	}
 
 	/**
-	 * datanode心跳检测，检测datanode是否存活
+	 * datanode是否存活的监控线程
+	 * @author machi
+	 *
 	 */
-	class DataNodeAliveMonitor extends Thread{
+	class DataNodeAliveMonitor extends Thread {
+
 		@Override
 		public void run() {
-			final List<String> toRemoveList = new ArrayList<>();
-			while (true){
-				try {
-					Iterator<DataNodeInfo> iteratorDataNode = datanodes.values().iterator();
-					while (iteratorDataNode.hasNext()){
-						DataNodeInfo nodeInfo = iteratorDataNode.next();
-						//超过90s
-						if (System.currentTimeMillis()-nodeInfo.getLastHeatBeatTime()>90*1000){
-							toRemoveList.add(nodeInfo.getIp()+"-"+nodeInfo.getHostname());
+			try {
+				while(true) {
+					List<String> toRemoveDatanodes = new ArrayList<String>();
+
+					Iterator<DataNodeInfo> datanodesIterator = datanodes.values().iterator();
+					DataNodeInfo datanode = null;
+					while(datanodesIterator.hasNext()) {
+						datanode = datanodesIterator.next();
+						if(System.currentTimeMillis() - datanode.getLastHeatBeatTime() > 90 * 1000) {
+							toRemoveDatanodes.add(datanode.getIp() + "-" + datanode.getHostname());
 						}
 					}
 
-					//移除
-					Optional.ofNullable(toRemoveList).map(toRemove -> toRemoveList.remove(toRemove));
+					if(!toRemoveDatanodes.isEmpty()) {
+						for(String toRemoveDatanode : toRemoveDatanodes) {
+							datanodes.remove(toRemoveDatanode);
+						}
+					}
 
 					Thread.sleep(30 * 1000);
-				}catch (Exception e){
-					e.printStackTrace();
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
+
 	}
-	
+
 }

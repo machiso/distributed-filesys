@@ -1,6 +1,14 @@
 package org.machi.dfs;
 
-import java.util.concurrent.CountDownLatch;
+import io.grpc.ManagedChannel;
+import io.grpc.netty.NegotiationType;
+import io.grpc.netty.NettyChannelBuilder;
+import org.machi.rpc.model.HeartbeatRequest;
+import org.machi.rpc.model.HeartbeatResponse;
+import org.machi.rpc.model.RegisterRequest;
+import org.machi.rpc.model.RegisterResponse;
+import org.machi.rpc.service.NameNodeServiceGrpc;
+
 
 /**
  * 负责跟一组NameNode中的某一个进行通信的线程组件
@@ -9,26 +17,40 @@ import java.util.concurrent.CountDownLatch;
  */
 public class NameNodeServiceActor {
 
+	private static final String NAMENODE_HOSTNAME = "localhost";
+	private static final Integer NAMENODE_PORT = 50070;
+
+	private NameNodeServiceGrpc.NameNodeServiceBlockingStub namenode;
+
+	public NameNodeServiceActor() {
+		ManagedChannel channel = NettyChannelBuilder
+				.forAddress(NAMENODE_HOSTNAME, NAMENODE_PORT)
+				.negotiationType(NegotiationType.PLAINTEXT)
+				.build();
+		this.namenode = NameNodeServiceGrpc.newBlockingStub(channel);
+	}
+
 	/**
 	 * 向自己负责通信的那个NameNode进行注册
 	 */
-	public void register(CountDownLatch latch) {
-		Thread registerThread = new RegisterThread(latch);
-		registerThread.start(); 
+	public void register() throws InterruptedException {
+		Thread registerThread = new RegisterThread();
+		registerThread.start();
+		registerThread.join();
 	}
-	
+
+
+	// 向NameNode进行心跳
+	public void startHeartbeat() {
+		new HeartbeatThread().start();
+	}
+
 	/**
 	 * 负责注册的线程
 	 * @author machi
 	 *
 	 */
 	class RegisterThread extends Thread {
-		
-		CountDownLatch latch;
-		
-		public RegisterThread(CountDownLatch latch) {
-			this.latch = latch;
-		}
 		
 		@Override
 		public void run() {
@@ -43,14 +65,45 @@ public class NameNodeServiceActor {
 				String ip = "127.0.0.1";
 				String hostname = "dfs-data-01";
 				// 通过RPC接口发送到NameNode他的注册接口上去
-				
-				Thread.sleep(1000);  
-				latch.countDown();  
+				RegisterRequest registerRequest = RegisterRequest.newBuilder()
+						.setIp(ip)
+						.setHostname(hostname)
+						.build();
+				RegisterResponse response = namenode.register(registerRequest);
+
+				System.out.println("收到namenode返回的注册响应:"+response.getStatus());
+
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 		
 	}
-	
+
+
+	private class HeartbeatThread extends Thread{
+		@Override
+		public void run() {
+			while (true){
+				try {
+					String ip = "127.0.0.1";
+					String hostname = "dfs-data-01";
+
+					HeartbeatRequest heartbeatRequest = HeartbeatRequest.newBuilder()
+							.setIp(ip)
+							.setHostname(hostname)
+							.build();
+
+					HeartbeatResponse heartbeatResponse = namenode.heartbeat(heartbeatRequest);
+					System.out.println("收到namenode返回的心跳响应"+heartbeatResponse.getStatus());
+
+					Thread.sleep(10 * 1000);
+				}
+				catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 }
