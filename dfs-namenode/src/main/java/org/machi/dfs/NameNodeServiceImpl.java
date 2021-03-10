@@ -1,10 +1,7 @@
 package org.machi.dfs;
 
 import io.grpc.stub.StreamObserver;
-import org.machi.rpc.model.HeartbeatRequest;
-import org.machi.rpc.model.HeartbeatResponse;
-import org.machi.rpc.model.RegisterRequest;
-import org.machi.rpc.model.RegisterResponse;
+import org.machi.rpc.model.*;
 import org.machi.rpc.service.NameNodeServiceGrpc;
 
 /**
@@ -33,16 +30,6 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 		this.datanodeManager = datanodeManager;
 	}
 
-	/**
-	 * 创建目录
-	 * @param path 目录路径
-	 * @return 是否创建成功
-	 * @throws Exception
-	 */
-	public Boolean mkdir(String path) throws Exception {
-		return this.namesystem.mkdir(path);
-	}
-
 
 	@Override
 	public void register(RegisterRequest request,
@@ -69,6 +56,25 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 
 		responseObserver.onNext(response);
 		responseObserver.onCompleted();
+	}
+
+
+	@Override
+	public void mkdir(MkdirRequest request, StreamObserver<MkdirResponse> responseObserver) {
+		try {
+			this.namesystem.mkdir(request.getPath());
+
+			System.out.println("创建目录：path" + request.getPath());
+
+			MkdirResponse response = MkdirResponse.newBuilder()
+					.setStatus(STATUS_SUCCESS)
+					.build();
+
+			responseObserver.onNext(response);
+			responseObserver.onCompleted();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }

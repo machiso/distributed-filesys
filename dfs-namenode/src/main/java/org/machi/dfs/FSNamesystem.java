@@ -21,12 +21,13 @@ public class FSNamesystem {
 		this.editlog = new FSEditlog();
 	}
 	
-	/**
-	 * 创建目录
-	 * @param path 目录路径
-	 * @return 是否成功
-	 */
-	public Boolean mkdir(String path) throws Exception {
+	//创建目录
+	//首先需要维护内存中的文件目录树（也叫命名空间）
+	//接着需要构造一条editlog，用来记录内存中做了哪些操作，editlog存入内存中，采用内存双缓存机制
+	//异步将内存数据刷入磁盘中
+	//虽然mkdir和logEdit都使用了重量级同步机制synchronized，但是由于没有设计到磁盘和网络IO操作，完全基于内存来进行
+	//速度其实是很快的
+	public Boolean mkdir(String path){
 		this.directory.mkdir(path); 
 		this.editlog.logEdit("创建了一个目录：" + path);   
 		return true;
