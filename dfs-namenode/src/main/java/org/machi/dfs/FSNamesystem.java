@@ -29,7 +29,7 @@ public class FSNamesystem {
 	//速度其实是很快的
 	public Boolean mkdir(String path){
 		this.directory.mkdir(path); 
-		this.editlog.logEdit("创建了一个目录：" + path);   
+		this.editlog.logEdit("{'OP':'MKDIR','PATH':'" + path + "'}");
 		return true;
 	}
 

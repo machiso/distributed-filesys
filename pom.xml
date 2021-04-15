@@ -11,7 +11,7 @@
     <module>dfs-namenode</module>
     <module>dfs-datanode</module>
     <module>dfs-rpc</module>
-      <module>dfs-client</module>
+    <module>dfs-client</module>
   </modules>
 
   <name>distributed-filesystem</name>
@@ -30,6 +30,12 @@
       <artifactId>junit</artifactId>
       <version>4.11</version>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>fastjson</artifactId>
+      <version>1.2.70</version>
     </dependency>
   </dependencies>
 
