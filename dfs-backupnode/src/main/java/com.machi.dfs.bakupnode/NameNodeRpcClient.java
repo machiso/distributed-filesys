@@ -1,23 +1,24 @@
-package com.machi.dfs.client;
+package com.machi.dfs.bakupnode;
 
+import com.alibaba.fastjson.JSONArray;
+import com.zhss.dfs.namenode.rpc.model.FetchEditsLogRequest;
+import com.zhss.dfs.namenode.rpc.model.FetchEditsLogResponse;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
-import com.zhss.dfs.namenode.rpc.model.MkdirRequest;
-import com.zhss.dfs.namenode.rpc.model.MkdirResponse;
 import com.zhss.dfs.namenode.rpc.service.NameNodeServiceGrpc;
 
 /**
  * @author machi
  */
-public class FileSystemImpl implements FileSystem{
+public class NameNodeRpcClient {
 
     private static final String NAMENODE_HOSTNAME = "localhost";
     private static final Integer NAMENODE_PORT = 50070;
 
     private NameNodeServiceGrpc.NameNodeServiceBlockingStub namenode;
 
-    public FileSystemImpl() {
+    public NameNodeRpcClient() {
         ManagedChannel channel = NettyChannelBuilder
                 .forAddress(NAMENODE_HOSTNAME, NAMENODE_PORT)
                 .negotiationType(NegotiationType.PLAINTEXT)
@@ -25,14 +26,22 @@ public class FileSystemImpl implements FileSystem{
         this.namenode = NameNodeServiceGrpc.newBlockingStub(channel);
     }
 
-    @Override
-    public void mkdir(String path) {
-
-        MkdirRequest mkdirRequest = MkdirRequest.newBuilder()
-                .setPath(path)
+    /**
+     * 抓取editslog数据
+     * @return
+     */
+    public JSONArray fetchEditsLog() {
+        FetchEditsLogRequest request = FetchEditsLogRequest.newBuilder()
+                .setCode(1)
                 .build();
 
-        MkdirResponse mkdirResponse = namenode.mkdir(mkdirRequest);
-        System.out.println("收到namenode返回的注册响应："+mkdirResponse.getStatus());
+        FetchEditsLogResponse response = namenode.fetchEditsLog(request);
+        String editsLogJson = response.getEditsLog();
+
+        return JSONArray.parseArray(editsLogJson);
     }
+
+
 }
+
+

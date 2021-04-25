@@ -1,6 +1,8 @@
 package org.machi.dfs;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 负责管理edits log日志的核心组件
@@ -22,13 +24,11 @@ public class FSEditlog {
 	//是否正在调度一次刷盘的操作，默认false
 	private volatile Boolean isSchedulingSync = false;
 
-	/**
-	 * 当前是否有线程在等待刷新下一批edits log到磁盘里去
-	 */
-	private volatile Boolean isWaitSync = false;
-
 	//内存双缓冲
 	private DoubleBuffer doubleBuffer = new DoubleBuffer();
+
+	//已经刷入磁盘的txid文件
+	private List<String> flushedTxids = new ArrayList<>();
 	/**
 	 * 在同步到磁盘中的最大的一个txid
 	 */
@@ -75,7 +75,8 @@ public class FSEditlog {
 			}
 
 			//将同步磁盘标志位更新位true，别的线程进入logEdit方法中，首先就会阻塞
-			isSyncRunning = true;
+			//走到这里，代表当前的缓冲区已满，再来log的话已经放不下了，需要调度一次刷磁盘的操作，因此请求到这里都会被卡住
+			isSchedulingSync = true;
 		}
 
 		logSync();
@@ -84,7 +85,7 @@ public class FSEditlog {
 
 	//判断当前是否正在刷磁盘，如果是，需要阻塞等待1s
 	private void isSyncRunning() {
-		while (isSyncRunning){
+		while (isSchedulingSync){
 			try {
 				wait(1000);
 			} catch (InterruptedException e) {
@@ -98,7 +99,7 @@ public class FSEditlog {
 	 * 在这里尝试允许某一个线程一次性将内存缓冲中的数据刷入磁盘文件中
 	 * 相当于实现一个批量将内存缓冲数据刷磁盘的过程
 	 */
-	private void logSync() {
+	private void logSync(){
 		// 再次尝试加锁
 		synchronized(this) {
 			long txid = localTxid.get(); // 获取到本地线程的副本
@@ -123,7 +124,6 @@ public class FSEditlog {
 						e.printStackTrace();
 					}
 				}
-				isWaitSync = false;
 			}
 
 			// 交换两块缓冲区
@@ -139,7 +139,11 @@ public class FSEditlog {
 
 		// 开始同步内存缓冲的数据到磁盘文件里去
 		// 这个过程其实是比较慢，基本上肯定是毫秒级了，弄不好就要几十毫秒
-		doubleBuffer.flush();
+		try {
+			doubleBuffer.flush();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		synchronized(this) {
 			// 同步完了磁盘之后，就会将标志位复位，再释放锁
@@ -149,4 +153,20 @@ public class FSEditlog {
 		}
 	}
 
+	/**
+	 * 获取已经刷入到磁盘editslog数据
+	 * @return
+	 */
+	public List<String> getFlushedTxids() {
+		synchronized (this){
+			return doubleBuffer.getFlushedTxids();
+		}
+	}
+
+	//获取当前缓存currentBuffer中的数据
+	public String[] getBufferedEditsLog() {
+		synchronized (this){
+			return doubleBuffer.getBufferedEditsLog();
+		}
+	}
 }

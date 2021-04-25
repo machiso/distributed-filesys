@@ -3,11 +3,11 @@ package org.machi.dfs;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
-import org.machi.rpc.model.HeartbeatRequest;
-import org.machi.rpc.model.HeartbeatResponse;
-import org.machi.rpc.model.RegisterRequest;
-import org.machi.rpc.model.RegisterResponse;
-import org.machi.rpc.service.NameNodeServiceGrpc;
+import com.zhss.dfs.namenode.rpc.model.HeartbeatRequest;
+import com.zhss.dfs.namenode.rpc.model.HeartbeatResponse;
+import com.zhss.dfs.namenode.rpc.model.RegisterRequest;
+import com.zhss.dfs.namenode.rpc.model.RegisterResponse;
+import com.zhss.dfs.namenode.rpc.service.NameNodeServiceGrpc;
 
 
 /**

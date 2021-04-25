@@ -2,7 +2,7 @@ package org.machi.dfs;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import org.machi.rpc.service.NameNodeServiceGrpc;
+import com.zhss.dfs.namenode.rpc.service.NameNodeServiceGrpc;
 
 import java.io.IOException;
 
