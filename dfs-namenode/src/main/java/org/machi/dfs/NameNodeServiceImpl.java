@@ -180,6 +180,7 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 		return null;
 	}
 
+	//从磁盘文件中来加载txid到内存缓存中
 	private void fetchFromFlushedFile(String flushedTxid, JSONArray fetchedEditsLog) {
 		try {
 			String[] flushedTxidSplited = flushedTxid.split("_");
@@ -225,12 +226,19 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 		//从内存中再重新拉取一次
 		String[] bufferedEditsLog = namesystem.getEditsLog().getBufferedEditsLog();
 
+		//把当前内存中全部的EditsLog都加载到内存中来，这样下次再来获取的话，先判断一下当前要获取的txid
+		// 是否比缓存中最大到txid要小，如果比缓存中最大txid小的话，就直接从缓存中继续获取
+		//当然了，每次将缓存中的数据加载过来的时候，都需要记录当前缓存中最大的txid是多少，currentBufferedMaxTxid来记录
+		//currentBufferedEditsLog：用来保存当前缓存中的一小部分数据
+		//将数据缓存起来（磁盘文件数据也是一次缓存一个文件），这样的话就可以提升backupnode来拉取的性能，直接从内存中返回性能是极高的
 		if (bufferedEditsLog != null){
 			Arrays.stream(bufferedEditsLog).forEach(editLog -> {
 				currentBufferedEditsLog.add(JSONObject.parseObject(editLog));
 				//当前内存缓存中最大的txid
 				currentBufferedMaxTxid = JSONObject.parseObject(editLog).getLong("txid");
 			});
+			//代表当前的缓存数据是从缓存加载过来的，而不是从磁盘文件加载来
+			//可以保证说：nameNode运行的任意时刻，总是有一部分的数据是在缓存中的，不论是磁盘文件的缓存数据，还是doubleBuffer中的数据
 			bufferedFlushedTxid = null;
 
 			fetchFromCurrentBuffer(fetchedEditsLog);
