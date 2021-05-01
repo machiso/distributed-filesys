@@ -1,7 +1,9 @@
 package com.machi.dfs.bakupnode;
 
+import com.alibaba.fastjson.JSONObject;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * 负责管理内存中的文件目录树的核心组件
@@ -14,16 +16,50 @@ public class FSDirectory {
 	 * 内存中的文件目录树
 	 */
 	private INodeDirectory dirTree;
+
+	/**
+	 *	读写锁
+	 */
+	ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+
+	//当前editslog
+	private long maxTxid = 0L;
+
+	public void writeLock(){
+		lock.writeLock().lock();
+	}
+
+	public void writeUnLock(){
+		lock.writeLock().unlock();
+	}
+
+	public void readLock(){
+		lock.readLock().lock();
+	}
+
+	public void readUnlock(){
+		lock.readLock().unlock();
+	}
 	
 	public FSDirectory() {
 		this.dirTree = new INodeDirectory("/");  
 	}
+
+	//用json的格式获取内存中的元数据
+	public FSImage getFSImageByJson(){
+		FSImage fsImage;
+		try {
+			readLock();
+			fsImage = new FSImage(maxTxid,JSONObject.toJSONString(dirTree));
+		}finally {
+			readUnlock();
+		}
+		return fsImage;
+	}
 	
-	/**
-	 * 创建目录
-	 * @param path 目录路径
-	 */
-	public void mkdir(String path) {
+	//创建目录
+	//这里采用读写锁来保证并发安全性，主要是创建目录和check point检查点之间，一个要对文件目录树进行添加，一个要对文件目录树进行读取
+	public void mkdir(long txid,String path) {
 		// path = /usr/warehouse/hive
 		// 你应该先判断一下，“/”根目录下有没有一个“usr”目录的存在
 		// 如果说有的话，那么再判断一下，“/usr”目录下，有没有一个“/warehouse”目录的存在
@@ -32,7 +68,11 @@ public class FSDirectory {
 
 
 		//这里需要采用锁将整个文件内存目录树给加锁，保证内存数据的数据一致性
-		synchronized(dirTree) {
+		try {
+			writeLock();
+
+			maxTxid = txid;
+
 			String[] pathes = path.split("/");
 			INodeDirectory parent = dirTree;
 			
@@ -52,8 +92,12 @@ public class FSDirectory {
 
 				parent = child;
 			}
+		}catch (Exception e){
+			e.printStackTrace();
+		}finally {
+			writeUnLock();
 		}
-		printDirTree(dirTree, "");
+//		printDirTree(dirTree, "");
 	}
 
 	private void printDirTree(INodeDirectory dirTree, String blank) {

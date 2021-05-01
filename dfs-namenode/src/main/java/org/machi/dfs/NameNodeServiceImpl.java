@@ -23,7 +23,7 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 	public static final Integer STATUS_FAILURE = 2;
 	public static final Integer STATUS_SHUTDOWN = 3;
 
-	private static final int BACKUP_NODE_FETCH_SIZE = 10;
+	private static final int BACKUP_NODE_FETCH_SIZE = 20;
 
 	/**
 	 * 负责管理元数据的核心组件
@@ -131,6 +131,7 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 		List<String> flushedTxids = namesystem.getEditsLog().getFlushedTxids();
 		//如果当前还没有刷入磁盘到数据，那么都在内存中
 		if (flushedTxids.size() == 0){
+			System.out.println("暂时没有磁盘文件，直接从内存中拉取editslog......");
 			fetchFromBufferedEditsLog(fetchedEditsLog);
 		}
 		//如果此时发现已经有落地磁盘的文件了，这个时候就要扫描所有的磁盘文件的索引范围
@@ -140,12 +141,14 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 			if (bufferedFlushedTxid != null){
 				// 如果要拉取的数据就在当前缓存的磁盘文件数据里
 				if (existInFlushedFile(bufferedFlushedTxid)){
+					System.out.println("上一次已经缓存过磁盘文件都数据，直接从磁盘文件缓存中来拉取editslog..." + bufferedFlushedTxid);
 					fetchFromCurrentBuffer(fetchedEditsLog);
 				}
 				// 如果要拉取的数据不在当前缓存的磁盘文件数据里了，那么需要从下一个磁盘文件去拉取
 				else {
 					String nextFlushedTxid = getNextFlushedTxid(flushedTxids, bufferedFlushedTxid);
 					if (nextFlushedTxid != null){
+						System.out.println("上一次磁盘文件缓存中找不到editslog,从下一个尝试来获取");
 						fetchFromFlushedFile(nextFlushedTxid,fetchedEditsLog);
 					}
 					// 如果没有找到下一个文件，此时就需要从内存里去继续读取
@@ -170,6 +173,7 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 				// 第二种情况，你要拉取的txid已经比磁盘文件里的全部都新了，还在内存缓冲里
 				// 如果没有找到下一个文件，此时就需要从内存里去继续读取
 				if (!fechedFromFlushedFile){
+					System.out.println("所有的磁盘文件都没有找到要拉取都editslog，尝试直接从内存中拉取...");
 					fetchFromBufferedEditsLog(fetchedEditsLog);
 				}
 			}
@@ -201,7 +205,7 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 			long startTxid = Long.valueOf(flushedTxidSplited[0]);
 			long endTxid = Long.valueOf(flushedTxidSplited[1]);
 
-			String currentEditsLogFile = "/Users/machi/Downloads/editslog/edits-"
+			String currentEditsLogFile = "/Users/machi/edits/edits-"
 					+ startTxid + "-" + endTxid + ".log";
 			List<String> editsLogs = Files.readAllLines(Paths.get(currentEditsLogFile),
 					StandardCharsets.UTF_8);
@@ -222,7 +226,8 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 	//是否存在于刷到磁盘的文件中
 	private boolean existInFlushedFile(String flushedTxid) {
 		String[] flushedTxidSplited = flushedTxid.split("_");
-		if (Long.valueOf(flushedTxidSplited[0]) <= syncedTxid + 1 && Long.valueOf(flushedTxidSplited[0]) >= syncedTxid){
+		long fetchTxid = syncedTxid + 1;
+		if (Long.valueOf(flushedTxidSplited[0]) <= fetchTxid && Long.valueOf(flushedTxidSplited[1]) >= fetchTxid){
 			return true;
 		}
 		return false;

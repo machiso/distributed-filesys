@@ -146,9 +146,10 @@ public class FSEditlog {
 	 * @return
 	 */
 	public List<String> getFlushedTxids() {
-		synchronized (this){
-			return doubleBuffer.getFlushedTxids();
-		}
+		//使用读写锁，避免这里出现阻塞等待
+//		synchronized (this){
+		return doubleBuffer.getFlushedTxids();
+//		}
 	}
 
 	//获取当前缓存currentBuffer中的数据

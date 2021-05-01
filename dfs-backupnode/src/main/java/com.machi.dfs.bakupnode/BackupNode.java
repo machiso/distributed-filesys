@@ -6,6 +6,8 @@ package com.machi.dfs.bakupnode;
  */
 public class BackupNode {
 
+    private volatile Boolean isRunning = true;
+
     private FSNamesystem fsNamesystem;
 
     public static void main(String[] args) throws Exception{
@@ -21,15 +23,12 @@ public class BackupNode {
     public void start(){
         EditsLogFetcher fetcher = new EditsLogFetcher(this,fsNamesystem);
         fetcher.start();
-    }
 
-    public void run() throws Exception{
-        while (isRunning()){
-            Thread.sleep(1000);
-        }
+        FsImageCheckPoint fsImageCheckPoint = new FsImageCheckPoint(this,fsNamesystem);
+        fsImageCheckPoint.start();
     }
 
     public boolean isRunning() {
-        return isRunning();
+        return isRunning;
     }
 }

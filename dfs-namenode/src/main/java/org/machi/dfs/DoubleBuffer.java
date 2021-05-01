@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * 内存双缓冲
@@ -37,7 +38,7 @@ class DoubleBuffer {
      * 已经输入磁盘中的txid范围
      * todo 如果刷入的磁盘txid越来越多，这边需要进行优化
      */
-    private List<String> flushedTxids = new ArrayList<String>();
+    private List<String> flushedTxids = new CopyOnWriteArrayList<>();
 
 
     //将edits log写到内存缓冲里去
@@ -119,7 +120,7 @@ class DoubleBuffer {
 
             String editsLogFilePath = "/Users/machi/edits/edits-"
                     + startTxid + "-" + endTxid + ".log";
-//            flushedTxids.add(startTxid + "_" + endTxid);
+            flushedTxids.add(startTxid + "_" + endTxid);
 
             RandomAccessFile file = null;
             FileOutputStream out = null;
