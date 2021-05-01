@@ -21,6 +21,7 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 
 	public static final Integer STATUS_SUCCESS = 1;
 	public static final Integer STATUS_FAILURE = 2;
+	public static final Integer STATUS_SHUTDOWN = 3;
 
 	private static final int BACKUP_NODE_FETCH_SIZE = 10;
 
@@ -32,6 +33,9 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 	 * 负责管理集群中所有的datanode的组件
 	 */
 	private DataNodeManager datanodeManager;
+
+	//是否还在运行
+	private volatile Boolean isRunning = true;
 
 	//当前backupNode节点同步到了哪一条txid了
 	private long syncedTxid = 0L;
@@ -84,14 +88,18 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 	@Override
 	public void mkdir(MkdirRequest request, StreamObserver<MkdirResponse> responseObserver) {
 		try {
-			this.namesystem.mkdir(request.getPath());
-
-//			System.out.println("创建目录：path = " + request.getPath());
-
-			MkdirResponse response = MkdirResponse.newBuilder()
-					.setStatus(STATUS_SUCCESS)
-					.build();
-
+			MkdirResponse response = null;
+			if (!isRunning){
+				response = MkdirResponse.newBuilder()
+						.setStatus(STATUS_SHUTDOWN)
+						.build();
+			}
+			else {
+				this.namesystem.mkdir(request.getPath());
+				response = MkdirResponse.newBuilder()
+						.setStatus(STATUS_SUCCESS)
+						.build();
+			}
 			responseObserver.onNext(response);
 			responseObserver.onCompleted();
 		} catch (Exception e) {
@@ -99,9 +107,15 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 		}
 	}
 
+	/**
+	 * 优雅关闭，将内存中的editlog刷入磁盘，并且不允许继续写入
+	 * @param request
+	 * @param responseObserver
+	 */
 	@Override
 	public void shutdown(ShutdownRequest request, StreamObserver<ShutdownResponse> responseObserver) {
-
+		this.isRunning = false;
+		this.namesystem.flush();
 	}
 
 	/**

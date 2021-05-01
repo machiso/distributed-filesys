@@ -40,4 +40,11 @@ public class FSNamesystem {
     public FSEditlog getEditsLog() {
 		return editlog;
     }
+
+	/**
+	 * 强制刷盘
+	 */
+	public void flush() {
+		this.editlog.flush();
+	}
 }

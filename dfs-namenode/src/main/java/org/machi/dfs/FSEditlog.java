@@ -157,4 +157,14 @@ public class FSEditlog {
 			return doubleBuffer.getBufferedEditsLog();
 		}
 	}
+
+	//将缓存中的数据刷入磁盘文件中
+	public void flush() {
+		try {
+			doubleBuffer.setReadyToSync();
+			doubleBuffer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }

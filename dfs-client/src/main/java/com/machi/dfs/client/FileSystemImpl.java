@@ -1,5 +1,6 @@
 package com.machi.dfs.client;
 
+import com.zhss.dfs.namenode.rpc.model.ShutdownRequest;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
@@ -34,5 +35,13 @@ public class FileSystemImpl implements FileSystem{
 
         MkdirResponse mkdirResponse = namenode.mkdir(mkdirRequest);
         System.out.println("收到namenode返回的注册响应："+mkdirResponse.getStatus());
+    }
+
+    @Override
+    public void shutdown() {
+        ShutdownRequest shutdownRequest = ShutdownRequest.newBuilder()
+                .setCode(1)
+                .build();
+        namenode.shutdown(shutdownRequest);
     }
 }

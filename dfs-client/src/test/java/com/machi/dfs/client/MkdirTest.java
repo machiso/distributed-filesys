@@ -9,19 +9,21 @@ public class MkdirTest {
 
         final FileSystemImpl filesystem = new FileSystemImpl();
 
-        for(int j = 0; j < 40; j++) {
-            new Thread() {
-                public void run() {
-                    for(int i = 0; i < 50; i++) {
-                        try {
-                            filesystem.mkdir("/usr/warehouse/hive" + i + "_" + Thread.currentThread().getName());
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                };
+//        for(int j = 0; j < 20; j++) {
+//            new Thread() {
+//                public void run() {
+//                    for(int i = 0; i < 50; i++) {
+//                        try {
+//                            filesystem.mkdir("/usr/warehouse/hive" + i + "_" + Thread.currentThread().getName());
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                };
+//
+//            }.start();
+//        }
 
-            }.start();
-        }
+        filesystem.shutdown();
     }
 }

@@ -7,4 +7,7 @@ public interface FileSystem {
 
     //创建目录
     void mkdir(String path);
+
+    //优雅关闭
+    void shutdown();
 }
