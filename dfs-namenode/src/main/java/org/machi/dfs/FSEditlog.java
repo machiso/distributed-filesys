@@ -38,10 +38,6 @@ public class FSEditlog {
 	 */
 	private ThreadLocal<Long> localTxid = new ThreadLocal<Long>();
 
-	// 就会导致说，对一个共享的map数据结构出现多线程并发的读写的问题
-	// 此时对这个map的读写是不是就需要加锁了
-//	private Map<Thread, Long> txidMap = new HashMap<Thread, Long>();
-
 	//记录edits log日志
 	//首先判断当前是否在刷盘，如果是的话，那么直接阻塞等待，如果没有在刷盘，构造一条editlog对象，
 	//并且判断当前缓冲区大小是否已经到达指定的内存大小，没到达的话，直接return,到达的话则需要进行刷盘操作
@@ -105,14 +101,6 @@ public class FSEditlog {
 			long txid = localTxid.get(); // 获取到本地线程的副本
 			// 如果说当前正好有人在刷内存缓冲到磁盘中去
 			if(isSyncRunning) {
-				// 那么此时这里应该有一些逻辑判断
-
-				// 假如说某个线程已经把txid = 1,2,3,4,5的edits log都从syncBuffer刷入磁盘了
-				// 或者说此时正在刷入磁盘中
-				// 此时syncMaxTxid = 5，代表的是正在输入磁盘的最大txid
-				// 那么这个时候来一个线程，他对应的txid = 3，此时他是可以直接返回了
-				// 就代表说肯定是他对应的edits log已经被别的线程在刷入磁盘了
-				// 这个时候txid = 3的线程就不需要等待了
 				if(txid <= syncTxid) {
 					return;
 				}

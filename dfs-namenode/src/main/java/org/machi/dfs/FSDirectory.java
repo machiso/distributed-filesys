@@ -53,7 +53,7 @@ public class FSDirectory {
 				parent = child;
 			}
 		}
-		printDirTree(dirTree, "");
+//		printDirTree(dirTree, "");
 	}
 
 	private void printDirTree(INodeDirectory dirTree, String blank) {

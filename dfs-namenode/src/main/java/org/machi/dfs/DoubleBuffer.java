@@ -17,13 +17,16 @@ import java.util.List;
 class DoubleBuffer {
 
     //单块editslog缓冲区的最大大小：默认是512字节
-    public static final Integer EDIT_LOG_BUFFER_LIMIT = 512 * 1024;
+    public static final Integer EDIT_LOG_BUFFER_LIMIT = 25 * 1024;
 
     //是专门用来承载线程写入edits log
     EditLogBuffer currentBuffer = new EditLogBuffer();
 
     //专门用来将数据同步到磁盘中去的一块缓冲
     EditLogBuffer syncBuffer = new EditLogBuffer();
+
+    //当前这块缓冲区写入的最大的一个txid
+    long maxTxid = 0L;
 
     /**
      * 当前这块缓冲区写入的最大的一个txid
@@ -35,9 +38,6 @@ class DoubleBuffer {
      * todo 如果刷入的磁盘txid越来越多，这边需要进行优化
      */
     private List<String> flushedTxids = new ArrayList<String>();
-
-    //当前写入的最大的txid
-    public Long maxTxid;
 
 
     //将edits log写到内存缓冲里去
@@ -91,22 +91,21 @@ class DoubleBuffer {
     //内存缓冲区，代表具体缓冲区的一个类
     public class EditLogBuffer{
 
-        ByteArrayOutputStream buffer ;
-
-        /**
-         * 上一次flush到磁盘的时候他的最大的txid是多少
-         */
+        //上一次flush到磁盘的时候他的最大的txid是多少
         long endTxid = 0L;
 
+        ByteArrayOutputStream buffer ;
+
         public EditLogBuffer() {
-            this.buffer = new ByteArrayOutputStream(EDIT_LOG_BUFFER_LIMIT*2);
+            this.buffer = new ByteArrayOutputStream(EDIT_LOG_BUFFER_LIMIT);
         }
 
         //写入edit log
         public void write(EditLog log) throws IOException {
+            endTxid = log.getTxid();
             buffer.write(log.getContent().getBytes());
             buffer.write("\n".getBytes());
-            System.out.println("当前缓冲区大小："+currentBuffer.size());
+            System.out.println("写入一条editlog:" + log.content + ",当前缓冲区大小："+ currentBuffer.size());
         }
 
         //获取当前缓冲区已经写入数据的字节数量
@@ -118,9 +117,9 @@ class DoubleBuffer {
             byte[] data = buffer.toByteArray();
             ByteBuffer dataBuffer = ByteBuffer.wrap(data);
 
-            String editsLogFilePath = "F:\\development\\editslog\\edits-"
+            String editsLogFilePath = "/Users/machi/edits/edits-"
                     + startTxid + "-" + endTxid + ".log";
-            flushedTxids.add(startTxid + "_" + endTxid);
+//            flushedTxids.add(startTxid + "_" + endTxid);
 
             RandomAccessFile file = null;
             FileOutputStream out = null;
@@ -144,12 +143,11 @@ class DoubleBuffer {
                     editsLogFileChannel.close();
                 }
             }
-
             startTxid = endTxid + 1;
         }
 
         public void clear() {
-
+            buffer.reset();
         }
 
         //获取当前内存缓冲区中的字节数组
