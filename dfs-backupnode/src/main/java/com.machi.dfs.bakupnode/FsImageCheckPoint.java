@@ -11,7 +11,7 @@ import java.nio.channels.FileChannel;
  */
 public class FsImageCheckPoint extends Thread{
 
-    public static final Integer CHECK_POINT_INTEVAL = 10 * 1000;
+    public static final Integer CHECK_POINT_INTEVAL = 2 * 60 * 1000;
 
     //上一次的fsImage文件
     private String lastFsImageFile = "";
@@ -37,13 +37,21 @@ public class FsImageCheckPoint extends Thread{
                 //删除旧的磁盘文件
                 deleteLastCheckPoint();
 
-                //将fsimage文件刷入磁盘
-                doCheckPoint(fsImage);
+                //将fsimage文件刷入本地磁盘
+                writeFSImageFile(fsImage);
+
+                //将fsimage文件上传server端
+                uploadFSImageFile(fsImage);
 
             }catch (Exception e){
                 e.printStackTrace();
             }
         }
+    }
+
+    private void uploadFSImageFile(FSImage fsImage) {
+        FSImageUploadClient fsImageUploadClient = new FSImageUploadClient(fsImage);
+        fsImageUploadClient.start();
     }
 
     private void deleteLastCheckPoint() throws Exception{
@@ -53,7 +61,7 @@ public class FsImageCheckPoint extends Thread{
         }
     }
 
-    private void doCheckPoint(FSImage fsImage) throws Exception{
+    private void writeFSImageFile(FSImage fsImage) throws Exception{
         ByteBuffer buffer = ByteBuffer.wrap(fsImage.getFsImageJson().getBytes());
 
         String fsImageFilePath = "/Users/machi/edits/fsimage-"
