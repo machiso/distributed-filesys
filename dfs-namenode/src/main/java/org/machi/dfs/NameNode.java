@@ -23,6 +23,9 @@ public class NameNode {
 	 * NameNode对外提供rpc接口的server，可以响应请求
 	 */
 	private NameNodeRpcServer rpcServer;
+
+	//负责对backupnode发送fsimage通信的server端
+	private FSImageFileUploadServer fsImageFileUploadServer;
 	
 	public NameNode() {
 		this.shouldRun = true;
@@ -35,6 +38,7 @@ public class NameNode {
 		this.namesystem = new FSNamesystem();
 		this.datanodeManager = new DataNodeManager();
 		this.rpcServer = new NameNodeRpcServer(this.namesystem, this.datanodeManager);
+		this.fsImageFileUploadServer = new FSImageFileUploadServer();
 	}
 	
 	/**
