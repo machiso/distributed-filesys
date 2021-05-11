@@ -21,7 +21,7 @@ public class FSNamesystem {
 	
 	public FSNamesystem() {
 		this.directory = new FSDirectory();
-		this.editlog = new FSEditlog();
+		this.editlog = new FSEditlog(this);
 	}
 	
 	//创建目录

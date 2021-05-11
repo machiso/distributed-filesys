@@ -11,14 +11,10 @@ import java.util.List;
  */
 public class FSEditlog {
 
-	/**
-	 * 当前递增到的txid的序号
-	 */
+	//当前递增到的txid的序号
 	private long txidSeq = 0L;
 
-	/**
-	 * 当前是否在将内存缓冲刷入磁盘中,默认为false
-	 */
+	//当前是否在将内存缓冲刷入磁盘中,默认为false
 	private volatile Boolean isSyncRunning = false;
 
 	//是否正在调度一次刷盘的操作，默认false
@@ -29,14 +25,20 @@ public class FSEditlog {
 
 	//已经刷入磁盘的txid文件
 	private List<String> flushedTxids = new ArrayList<>();
-	/**
-	 * 在同步到磁盘中的最大的一个txid
-	 */
+
+	//在同步到磁盘中的最大的一个txid
 	private volatile Long syncTxid = 0L;
-	/**
-	 * 每个线程自己本地的txid副本
-	 */
+
+	//每个线程自己本地的txid副本
 	private ThreadLocal<Long> localTxid = new ThreadLocal<Long>();
+
+	private FSNamesystem fsNamesystem;
+
+	public FSEditlog(FSNamesystem fsNamesystem) {
+		this.fsNamesystem = fsNamesystem;
+		EditsLogCleaner cleaner = new EditsLogCleaner(fsNamesystem);
+		cleaner.start();
+	}
 
 	//记录edits log日志
 	//首先判断当前是否在刷盘，如果是的话，那么直接阻塞等待，如果没有在刷盘，构造一条editlog对象，

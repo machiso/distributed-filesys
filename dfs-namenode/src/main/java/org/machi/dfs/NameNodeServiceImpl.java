@@ -304,23 +304,6 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 		responseObserver.onCompleted();
 	}
 
-	private void deleteEditsLog(long fsImageTxid) {
-		List<String> flushedTxids = namesystem.getEditsLog().getFlushedTxids();
-		for (String flushTxid : flushedTxids){
-			long fluedId = Long.valueOf(flushTxid.split("-")[1]);
-			if (fluedId <= fsImageTxid){
-				String path = "/Users/machi/edits/edits-" + flushTxid + ".log";;
-				deleteFile(path);
-			}
-		}
-	}
-
-	public void deleteFile(String path){
-		File file = new File(path);
-		if (file.exists())
-			file.delete();
-	}
-
 	@Override
 	public void create(CreateFileRequest request, StreamObserver<CreateFileResponse> responseObserver) {
 
