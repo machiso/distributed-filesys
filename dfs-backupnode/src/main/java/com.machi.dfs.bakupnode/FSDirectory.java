@@ -15,7 +15,7 @@ public class FSDirectory {
 	/**
 	 * 内存中的文件目录树
 	 */
-	private INodeDirectory dirTree;
+	private INode dirTree;
 
 	/**
 	 *	读写锁
@@ -42,7 +42,7 @@ public class FSDirectory {
 	}
 	
 	public FSDirectory() {
-		this.dirTree = new INodeDirectory("/");  
+		this.dirTree = new INode("/");  
 	}
 
 	//用json的格式获取内存中的元数据
@@ -74,20 +74,20 @@ public class FSDirectory {
 			maxTxid = txid;
 
 			String[] pathes = path.split("/");
-			INodeDirectory parent = dirTree;
+			INode parent = dirTree;
 			
 			for(String splitedPath : pathes) {
 				if(splitedPath.trim().equals("")) {
 					continue;
 				}
 				
-				INodeDirectory dir = findDirectory(parent, splitedPath);
+				INode dir = findDirectory(parent, splitedPath);
 				if(dir != null) {
 					parent = dir;
 					continue;
 				}
 				
-				INodeDirectory child = new INodeDirectory(splitedPath); 
+				INode child = new INode(splitedPath); 
 				parent.addChild(child);
 
 				parent = child;
@@ -100,13 +100,13 @@ public class FSDirectory {
 //		printDirTree(dirTree, "");
 	}
 
-	private void printDirTree(INodeDirectory dirTree, String blank) {
+	private void printDirTree(INode dirTree, String blank) {
 		if(dirTree.getChildren().size() == 0) {
 			return;
 		}
 		for(INode dir : dirTree.getChildren()) {
-			System.out.println(blank + ((INodeDirectory) dir).getPath());
-			printDirTree((INodeDirectory) dir, blank + " ");
+			System.out.println(blank + ((INode) dir).getPath());
+			printDirTree((INode) dir, blank + " ");
 		}
 	}
 	
@@ -116,14 +116,14 @@ public class FSDirectory {
 	 * @param path
 	 * @return
 	 */
-	private INodeDirectory findDirectory(INodeDirectory dir, String path) {
+	private INode findDirectory(INode dir, String path) {
 		if(dir.getChildren().size() == 0) {
 			return null;
 		}
 
 		for(INode child : dir.getChildren()) {
-			if(child instanceof INodeDirectory) {
-				INodeDirectory childDir = (INodeDirectory) child;
+			if(child instanceof INode) {
+				INode childDir = (INode) child;
 				if((childDir.getPath().equals(path))) {
 					return childDir;
 				}
@@ -133,27 +133,17 @@ public class FSDirectory {
 		return null;
 	}
 	
-	
-	/**
-	 * 代表的是文件目录树中的一个节点
-	 * @author machi
-	 *
-	 */
-	private interface INode {
-		
-	}
-	
 	/**
 	 * 代表文件目录树中的一个目录
 	 * @author machi
 	 *
 	 */
-	public static class INodeDirectory implements INode {
+	public static class INode {
 		
 		private String path;
 		private List<INode> children;
 		
-		public INodeDirectory(String path) {
+		public INode(String path) {
 			this.path = path;
 			this.children = new LinkedList<INode>();
 		}
@@ -176,23 +166,4 @@ public class FSDirectory {
 		}
 		
 	}
-	
-	/**
-	 * 代表文件目录树中的一个文件
-	 * @author machi
-	 *
-	 */
-	public static class INodeFile implements INode {
-		
-		private String name;
-
-		public String getName() {
-			return name;
-		}
-		public void setName(String name) {
-			this.name = name;
-		}
-		
-	}
-	
 }

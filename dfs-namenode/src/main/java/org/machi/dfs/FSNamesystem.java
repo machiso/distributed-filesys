@@ -1,5 +1,13 @@
 package org.machi.dfs;
 
+import com.alibaba.fastjson.JSONObject;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+
 /**
  * 负责管理元数据的核心组件
  * @author machi
@@ -22,14 +30,54 @@ public class FSNamesystem {
 	public FSNamesystem() {
 		this.directory = new FSDirectory();
 		this.editlog = new FSEditlog(this);
+		recoverFsImageFile();
 	}
-	
+
+	//namenode启动的时候进行fsimage恢复到内存中
+	private void recoverFsImageFile() {
+
+		String path = "/Users/machi/edits/namenode-fsimage.meta";
+		try {
+			File file = new File(path);
+			if (!file.exists()){
+				return;
+			}
+			//将磁盘文件加载到内存中
+			loadFsImageFile(path);
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+	}
+
+	private void loadFsImageFile(String path) throws IOException {
+		FileInputStream in = null;
+		FileChannel channel = null;
+		try {
+			in = new FileInputStream(path);
+			channel = in.getChannel();
+
+			ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024);
+			int count = channel.read(buffer);
+			buffer.flip();
+
+			String fsimageJson = new String(buffer.array(),0,count);
+			System.out.println("恢复fsimage文件中的数据：" + fsimageJson);
+
+			FSDirectory.INode node = JSONObject.parseObject(fsimageJson, FSDirectory.INode.class);
+			directory.setDirTree(node);
+		}catch (Exception e){
+			e.printStackTrace();
+		}finally {
+			if (in != null){
+				in.close();
+			}
+			if (channel != null){
+				channel.close();
+			}
+		}
+	}
+
 	//创建目录
-	//首先需要维护内存中的文件目录树（也叫命名空间）
-	//接着需要构造一条editlog，用来记录内存中做了哪些操作，editlog存入内存中，采用内存双缓存机制
-	//异步将内存数据刷入磁盘中
-	//虽然mkdir和logEdit都使用了重量级同步机制synchronized，但是由于没有设计到磁盘和网络IO操作，完全基于内存来进行
-	//速度其实是很快的
 	public Boolean mkdir(String path){
 		this.directory.mkdir(path); 
 		this.editlog.logEdit("{'OP':'MKDIR','PATH':'" + path + "'}");
