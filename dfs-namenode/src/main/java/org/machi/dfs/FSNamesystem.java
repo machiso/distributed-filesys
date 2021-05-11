@@ -15,6 +15,9 @@ public class FSNamesystem {
 	 * 负责管理edits log写入磁盘的组件
 	 */
 	private FSEditlog editlog;
+
+	//最近一次fsimage文件的最大txid
+	private long fsImageCheckPointTxid;
 	
 	public FSNamesystem() {
 		this.directory = new FSDirectory();
@@ -47,4 +50,12 @@ public class FSNamesystem {
 	public void flush() {
 		this.editlog.flush();
 	}
+
+	public long getFsImageCheckPointTxid() {
+		return fsImageCheckPointTxid;
+	}
+
+	public void setCheckpointTxid(long txid) {
+		this.fsImageCheckPointTxid = txid;
+    }
 }

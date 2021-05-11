@@ -4,18 +4,18 @@
 package com.zhss.dfs.namenode.rpc.model;
 
 /**
- * Protobuf type {@code com.zhss.dfs.namenode.rpc.FetchEditsLogRequest}
+ * Protobuf type {@code com.zhss.dfs.namenode.rpc.CreateFileResponse}
  */
-public  final class FetchEditsLogRequest extends
+public  final class CreateFileResponse extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:com.zhss.dfs.namenode.rpc.FetchEditsLogRequest)
-    FetchEditsLogRequestOrBuilder {
-  // Use FetchEditsLogRequest.newBuilder() to construct.
-  private FetchEditsLogRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+    // @@protoc_insertion_point(message_implements:com.zhss.dfs.namenode.rpc.CreateFileResponse)
+    CreateFileResponseOrBuilder {
+  // Use CreateFileResponse.newBuilder() to construct.
+  private CreateFileResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private FetchEditsLogRequest() {
-    syncedTxid_ = 0L;
+  private CreateFileResponse() {
+    status_ = 0;
   }
 
   @Override
@@ -23,7 +23,7 @@ public  final class FetchEditsLogRequest extends
   getUnknownFields() {
     return com.google.protobuf.UnknownFieldSet.getDefaultInstance();
   }
-  private FetchEditsLogRequest(
+  private CreateFileResponse(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -45,7 +45,7 @@ public  final class FetchEditsLogRequest extends
           }
           case 8: {
 
-            syncedTxid_ = input.readInt64();
+            status_ = input.readInt32();
             break;
           }
         }
@@ -61,23 +61,23 @@ public  final class FetchEditsLogRequest extends
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_FetchEditsLogRequest_descriptor;
+    return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_CreateFileResponse_descriptor;
   }
 
   protected FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_FetchEditsLogRequest_fieldAccessorTable
+    return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_CreateFileResponse_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            FetchEditsLogRequest.class, Builder.class);
+            CreateFileResponse.class, Builder.class);
   }
 
-  public static final int SYNCEDTXID_FIELD_NUMBER = 1;
-  private long syncedTxid_;
+  public static final int STATUS_FIELD_NUMBER = 1;
+  private int status_;
   /**
-   * <code>optional int64 syncedTxid = 1;</code>
+   * <code>optional int32 status = 1;</code>
    */
-  public long getSyncedTxid() {
-    return syncedTxid_;
+  public int getStatus() {
+    return status_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -92,8 +92,8 @@ public  final class FetchEditsLogRequest extends
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (syncedTxid_ != 0L) {
-      output.writeInt64(1, syncedTxid_);
+    if (status_ != 0) {
+      output.writeInt32(1, status_);
     }
   }
 
@@ -102,9 +102,9 @@ public  final class FetchEditsLogRequest extends
     if (size != -1) return size;
 
     size = 0;
-    if (syncedTxid_ != 0L) {
+    if (status_ != 0) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(1, syncedTxid_);
+        .computeInt32Size(1, status_);
     }
     memoizedSize = size;
     return size;
@@ -116,14 +116,14 @@ public  final class FetchEditsLogRequest extends
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof FetchEditsLogRequest)) {
+    if (!(obj instanceof CreateFileResponse)) {
       return super.equals(obj);
     }
-    FetchEditsLogRequest other = (FetchEditsLogRequest) obj;
+    CreateFileResponse other = (CreateFileResponse) obj;
 
     boolean result = true;
-    result = result && (getSyncedTxid()
-        == other.getSyncedTxid());
+    result = result && (getStatus()
+        == other.getStatus());
     return result;
   }
 
@@ -134,66 +134,65 @@ public  final class FetchEditsLogRequest extends
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptorForType().hashCode();
-    hash = (37 * hash) + SYNCEDTXID_FIELD_NUMBER;
-    hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-        getSyncedTxid());
+    hash = (37 * hash) + STATUS_FIELD_NUMBER;
+    hash = (53 * hash) + getStatus();
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static FetchEditsLogRequest parseFrom(
+  public static CreateFileResponse parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static FetchEditsLogRequest parseFrom(
+  public static CreateFileResponse parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static FetchEditsLogRequest parseFrom(byte[] data)
+  public static CreateFileResponse parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static FetchEditsLogRequest parseFrom(
+  public static CreateFileResponse parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static FetchEditsLogRequest parseFrom(java.io.InputStream input)
+  public static CreateFileResponse parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static FetchEditsLogRequest parseFrom(
+  public static CreateFileResponse parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static FetchEditsLogRequest parseDelimitedFrom(java.io.InputStream input)
+  public static CreateFileResponse parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static FetchEditsLogRequest parseDelimitedFrom(
+  public static CreateFileResponse parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static FetchEditsLogRequest parseFrom(
+  public static CreateFileResponse parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static FetchEditsLogRequest parseFrom(
+  public static CreateFileResponse parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -205,7 +204,7 @@ public  final class FetchEditsLogRequest extends
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(FetchEditsLogRequest prototype) {
+  public static Builder newBuilder(CreateFileResponse prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -220,25 +219,25 @@ public  final class FetchEditsLogRequest extends
     return builder;
   }
   /**
-   * Protobuf type {@code com.zhss.dfs.namenode.rpc.FetchEditsLogRequest}
+   * Protobuf type {@code com.zhss.dfs.namenode.rpc.CreateFileResponse}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:com.zhss.dfs.namenode.rpc.FetchEditsLogRequest)
-      FetchEditsLogRequestOrBuilder {
+      // @@protoc_insertion_point(builder_implements:com.zhss.dfs.namenode.rpc.CreateFileResponse)
+      CreateFileResponseOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_FetchEditsLogRequest_descriptor;
+      return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_CreateFileResponse_descriptor;
     }
 
     protected FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_FetchEditsLogRequest_fieldAccessorTable
+      return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_CreateFileResponse_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              FetchEditsLogRequest.class, Builder.class);
+              CreateFileResponse.class, Builder.class);
     }
 
-    // Construct using com.zhss.dfs.namenode.rpc.model.FetchEditsLogRequest.newBuilder()
+    // Construct using com.zhss.dfs.namenode.rpc.model.CreateFileResponse.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -255,31 +254,31 @@ public  final class FetchEditsLogRequest extends
     }
     public Builder clear() {
       super.clear();
-      syncedTxid_ = 0L;
+      status_ = 0;
 
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_FetchEditsLogRequest_descriptor;
+      return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_CreateFileResponse_descriptor;
     }
 
-    public FetchEditsLogRequest getDefaultInstanceForType() {
-      return FetchEditsLogRequest.getDefaultInstance();
+    public CreateFileResponse getDefaultInstanceForType() {
+      return CreateFileResponse.getDefaultInstance();
     }
 
-    public FetchEditsLogRequest build() {
-      FetchEditsLogRequest result = buildPartial();
+    public CreateFileResponse build() {
+      CreateFileResponse result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public FetchEditsLogRequest buildPartial() {
-      FetchEditsLogRequest result = new FetchEditsLogRequest(this);
-      result.syncedTxid_ = syncedTxid_;
+    public CreateFileResponse buildPartial() {
+      CreateFileResponse result = new CreateFileResponse(this);
+      result.status_ = status_;
       onBuilt();
       return result;
     }
@@ -311,18 +310,18 @@ public  final class FetchEditsLogRequest extends
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof FetchEditsLogRequest) {
-        return mergeFrom((FetchEditsLogRequest)other);
+      if (other instanceof CreateFileResponse) {
+        return mergeFrom((CreateFileResponse)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(FetchEditsLogRequest other) {
-      if (other == FetchEditsLogRequest.getDefaultInstance()) return this;
-      if (other.getSyncedTxid() != 0L) {
-        setSyncedTxid(other.getSyncedTxid());
+    public Builder mergeFrom(CreateFileResponse other) {
+      if (other == CreateFileResponse.getDefaultInstance()) return this;
+      if (other.getStatus() != 0) {
+        setStatus(other.getStatus());
       }
       onChanged();
       return this;
@@ -336,11 +335,11 @@ public  final class FetchEditsLogRequest extends
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      FetchEditsLogRequest parsedMessage = null;
+      CreateFileResponse parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (FetchEditsLogRequest) e.getUnfinishedMessage();
+        parsedMessage = (CreateFileResponse) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -350,28 +349,28 @@ public  final class FetchEditsLogRequest extends
       return this;
     }
 
-    private long syncedTxid_ ;
+    private int status_ ;
     /**
-     * <code>optional int64 syncedTxid = 1;</code>
+     * <code>optional int32 status = 1;</code>
      */
-    public long getSyncedTxid() {
-      return syncedTxid_;
+    public int getStatus() {
+      return status_;
     }
     /**
-     * <code>optional int64 syncedTxid = 1;</code>
+     * <code>optional int32 status = 1;</code>
      */
-    public Builder setSyncedTxid(long value) {
+    public Builder setStatus(int value) {
       
-      syncedTxid_ = value;
+      status_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int64 syncedTxid = 1;</code>
+     * <code>optional int32 status = 1;</code>
      */
-    public Builder clearSyncedTxid() {
+    public Builder clearStatus() {
       
-      syncedTxid_ = 0L;
+      status_ = 0;
       onChanged();
       return this;
     }
@@ -386,39 +385,39 @@ public  final class FetchEditsLogRequest extends
     }
 
 
-    // @@protoc_insertion_point(builder_scope:com.zhss.dfs.namenode.rpc.FetchEditsLogRequest)
+    // @@protoc_insertion_point(builder_scope:com.zhss.dfs.namenode.rpc.CreateFileResponse)
   }
 
-  // @@protoc_insertion_point(class_scope:com.zhss.dfs.namenode.rpc.FetchEditsLogRequest)
-  private static final FetchEditsLogRequest DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:com.zhss.dfs.namenode.rpc.CreateFileResponse)
+  private static final CreateFileResponse DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new FetchEditsLogRequest();
+    DEFAULT_INSTANCE = new CreateFileResponse();
   }
 
-  public static FetchEditsLogRequest getDefaultInstance() {
+  public static CreateFileResponse getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  private static final com.google.protobuf.Parser<FetchEditsLogRequest>
-      PARSER = new com.google.protobuf.AbstractParser<FetchEditsLogRequest>() {
-    public FetchEditsLogRequest parsePartialFrom(
+  private static final com.google.protobuf.Parser<CreateFileResponse>
+      PARSER = new com.google.protobuf.AbstractParser<CreateFileResponse>() {
+    public CreateFileResponse parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-        return new FetchEditsLogRequest(input, extensionRegistry);
+        return new CreateFileResponse(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<FetchEditsLogRequest> parser() {
+  public static com.google.protobuf.Parser<CreateFileResponse> parser() {
     return PARSER;
   }
 
   @Override
-  public com.google.protobuf.Parser<FetchEditsLogRequest> getParserForType() {
+  public com.google.protobuf.Parser<CreateFileResponse> getParserForType() {
     return PARSER;
   }
 
-  public FetchEditsLogRequest getDefaultInstanceForType() {
+  public CreateFileResponse getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

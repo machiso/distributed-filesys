@@ -151,7 +151,6 @@ public class FSImageFileUploadServer extends Thread{
                 channel.close();
             }
         }
-
     }
 
     private void handleAcceptRequest(SelectionKey key) throws IOException {

@@ -6,6 +6,7 @@ import com.zhss.dfs.namenode.rpc.model.*;
 import io.grpc.stub.StreamObserver;
 import com.zhss.dfs.namenode.rpc.service.NameNodeServiceGrpc;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -126,6 +127,15 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 	@Override
 	public void fetchEditsLog(FetchEditsLogRequest request, StreamObserver<FetchEditsLogResponse> responseObserver) {
 		FetchEditsLogResponse response = null;
+		//如果server端已经优雅关闭，此时不允许backupnode再来同步editlog
+		if (!isRunning){
+			response = FetchEditsLogResponse.newBuilder()
+					.setEditsLog(new JSONArray().toJSONString())
+					.build();
+			responseObserver.onNext(response);
+			responseObserver.onCompleted();
+			return;
+		}
 		JSONArray fetchedEditsLog = new JSONArray();
 
 		List<String> flushedTxids = namesystem.getEditsLog().getFlushedTxids();
@@ -278,5 +288,63 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 			}
 		}
 	}
+
+	//todo
+	//将fsimage中的最大txid更新到本地磁盘上面
+	@Override
+	public void updateCheckpointTxid(UpdateCheckpointTxidRequest request, StreamObserver<UpdateCheckpointTxidResponse> responseObserver) {
+		long txid = request.getTxid();
+		namesystem.setCheckpointTxid(txid);
+
+		UpdateCheckpointTxidResponse response = UpdateCheckpointTxidResponse.newBuilder()
+				.setStatus(1)
+				.build();
+
+		responseObserver.onNext(response);
+		responseObserver.onCompleted();
+	}
+
+	private void deleteEditsLog(long fsImageTxid) {
+		List<String> flushedTxids = namesystem.getEditsLog().getFlushedTxids();
+		for (String flushTxid : flushedTxids){
+			long fluedId = Long.valueOf(flushTxid.split("-")[1]);
+			if (fluedId <= fsImageTxid){
+				String path = "/Users/machi/edits/edits-" + flushTxid + ".log";;
+				deleteFile(path);
+			}
+		}
+	}
+
+	public void deleteFile(String path){
+		File file = new File(path);
+		if (file.exists())
+			file.delete();
+	}
+
+	@Override
+	public void create(CreateFileRequest request, StreamObserver<CreateFileResponse> responseObserver) {
+
+	}
+
+	@Override
+	public void allocateDataNodes(AllocateDataNodesRequest request, StreamObserver<AllocateDataNodesResponse> responseObserver) {
+
+	}
+
+	@Override
+	public void informReplicaReceived(InformReplicaReceivedRequest request, StreamObserver<InformReplicaReceivedResponse> responseObserver) {
+
+	}
+
+	@Override
+	public void reportCompleteStorageInfo(ReportCompleteStorageInfoRequest request, StreamObserver<ReportCompleteStorageInfoResponse> responseObserver) {
+
+	}
+
+	@Override
+	public void getDataNodeForFile(GetDataNodeForFileRequest request, StreamObserver<GetDataNodeForFileResponse> responseObserver) {
+
+	}
+
 
 }

@@ -18,10 +18,12 @@ public class FsImageCheckPoint extends Thread{
 
     private BackupNode backupNode;
     private FSNamesystem namesystem;
+    private NameNodeRpcClient nameNodeRpcClient;
 
-    public FsImageCheckPoint(BackupNode backupNode,FSNamesystem namesystem) {
+    public FsImageCheckPoint(BackupNode backupNode,FSNamesystem namesystem,NameNodeRpcClient nameNodeRpcClient) {
         this.backupNode = backupNode;
         this.namesystem = namesystem;
+        this.nameNodeRpcClient = nameNodeRpcClient;
     }
 
     @Override
@@ -43,10 +45,17 @@ public class FsImageCheckPoint extends Thread{
                 //将fsimage文件上传server端
                 uploadFSImageFile(fsImage);
 
+                //将fsimage中的最大txid通知server
+                updateCheckpointTxid(fsImage);
+
             }catch (Exception e){
                 e.printStackTrace();
             }
         }
+    }
+
+    private void updateCheckpointTxid(FSImage fsImage) {
+        nameNodeRpcClient.updateCheckpointTxid(fsImage.getMaxTxid());
     }
 
     private void uploadFSImageFile(FSImage fsImage) {

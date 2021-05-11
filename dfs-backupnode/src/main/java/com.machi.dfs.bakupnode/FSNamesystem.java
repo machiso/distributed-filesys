@@ -28,7 +28,7 @@ public class FSNamesystem {
 	}
 
 	//获取文件目录树json
-	public FSImage getFSImage() throws Exception{
+	public FSImage getFSImage(){
 		return directory.getFSImageByJson();
 	}
 

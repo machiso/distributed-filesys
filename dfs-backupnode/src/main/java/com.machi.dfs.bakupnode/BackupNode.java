@@ -10,6 +10,8 @@ public class BackupNode {
 
     private FSNamesystem fsNamesystem;
 
+    private NameNodeRpcClient nameNodeRpcClient;
+
     public static void main(String[] args) throws Exception{
         BackupNode backupNode = new BackupNode();
         backupNode.init();
@@ -18,13 +20,14 @@ public class BackupNode {
 
     public void init(){
         fsNamesystem = new FSNamesystem();
+        nameNodeRpcClient = new NameNodeRpcClient();
     }
 
     public void start(){
-        EditsLogFetcher fetcher = new EditsLogFetcher(this,fsNamesystem);
+        EditsLogFetcher fetcher = new EditsLogFetcher(this,fsNamesystem,nameNodeRpcClient);
         fetcher.start();
 
-        FsImageCheckPoint fsImageCheckPoint = new FsImageCheckPoint(this,fsNamesystem);
+        FsImageCheckPoint fsImageCheckPoint = new FsImageCheckPoint(this,fsNamesystem,nameNodeRpcClient);
         fsImageCheckPoint.start();
     }
 

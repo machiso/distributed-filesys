@@ -66,6 +66,60 @@ public class NameNodeServiceGrpc {
               "com.zhss.dfs.namenode.rpc.NameNodeService", "fetchEditsLog"),
           io.grpc.protobuf.ProtoUtils.marshaller(com.zhss.dfs.namenode.rpc.model.FetchEditsLogRequest.getDefaultInstance()),
           io.grpc.protobuf.ProtoUtils.marshaller(com.zhss.dfs.namenode.rpc.model.FetchEditsLogResponse.getDefaultInstance()));
+  @io.grpc.ExperimentalApi
+  public static final io.grpc.MethodDescriptor<com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidRequest,
+      com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidResponse> METHOD_UPDATE_CHECKPOINT_TXID =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "com.zhss.dfs.namenode.rpc.NameNodeService", "updateCheckpointTxid"),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidRequest.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidResponse.getDefaultInstance()));
+  @io.grpc.ExperimentalApi
+  public static final io.grpc.MethodDescriptor<com.zhss.dfs.namenode.rpc.model.CreateFileRequest,
+      com.zhss.dfs.namenode.rpc.model.CreateFileResponse> METHOD_CREATE =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "com.zhss.dfs.namenode.rpc.NameNodeService", "create"),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.zhss.dfs.namenode.rpc.model.CreateFileRequest.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.zhss.dfs.namenode.rpc.model.CreateFileResponse.getDefaultInstance()));
+  @io.grpc.ExperimentalApi
+  public static final io.grpc.MethodDescriptor<com.zhss.dfs.namenode.rpc.model.AllocateDataNodesRequest,
+      com.zhss.dfs.namenode.rpc.model.AllocateDataNodesResponse> METHOD_ALLOCATE_DATA_NODES =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "com.zhss.dfs.namenode.rpc.NameNodeService", "allocateDataNodes"),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.zhss.dfs.namenode.rpc.model.AllocateDataNodesRequest.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.zhss.dfs.namenode.rpc.model.AllocateDataNodesResponse.getDefaultInstance()));
+  @io.grpc.ExperimentalApi
+  public static final io.grpc.MethodDescriptor<com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedRequest,
+      com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedResponse> METHOD_INFORM_REPLICA_RECEIVED =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "com.zhss.dfs.namenode.rpc.NameNodeService", "informReplicaReceived"),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedRequest.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedResponse.getDefaultInstance()));
+  @io.grpc.ExperimentalApi
+  public static final io.grpc.MethodDescriptor<com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoRequest,
+      com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoResponse> METHOD_REPORT_COMPLETE_STORAGE_INFO =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "com.zhss.dfs.namenode.rpc.NameNodeService", "reportCompleteStorageInfo"),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoRequest.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoResponse.getDefaultInstance()));
+  @io.grpc.ExperimentalApi
+  public static final io.grpc.MethodDescriptor<com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileRequest,
+      com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileResponse> METHOD_GET_DATA_NODE_FOR_FILE =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "com.zhss.dfs.namenode.rpc.NameNodeService", "getDataNodeForFile"),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileRequest.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileResponse.getDefaultInstance()));
 
   public static NameNodeServiceStub newStub(io.grpc.Channel channel) {
     return new NameNodeServiceStub(channel);
@@ -97,6 +151,24 @@ public class NameNodeServiceGrpc {
 
     public void fetchEditsLog(com.zhss.dfs.namenode.rpc.model.FetchEditsLogRequest request,
                               io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.FetchEditsLogResponse> responseObserver);
+
+    public void updateCheckpointTxid(com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidRequest request,
+                                     io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidResponse> responseObserver);
+
+    public void create(com.zhss.dfs.namenode.rpc.model.CreateFileRequest request,
+                       io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.CreateFileResponse> responseObserver);
+
+    public void allocateDataNodes(com.zhss.dfs.namenode.rpc.model.AllocateDataNodesRequest request,
+                                  io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.AllocateDataNodesResponse> responseObserver);
+
+    public void informReplicaReceived(com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedRequest request,
+                                      io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedResponse> responseObserver);
+
+    public void reportCompleteStorageInfo(com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoRequest request,
+                                          io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoResponse> responseObserver);
+
+    public void getDataNodeForFile(com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileRequest request,
+                                   io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileResponse> responseObserver);
   }
 
   public static interface NameNodeServiceBlockingClient {
@@ -110,6 +182,18 @@ public class NameNodeServiceGrpc {
     public com.zhss.dfs.namenode.rpc.model.ShutdownResponse shutdown(com.zhss.dfs.namenode.rpc.model.ShutdownRequest request);
 
     public com.zhss.dfs.namenode.rpc.model.FetchEditsLogResponse fetchEditsLog(com.zhss.dfs.namenode.rpc.model.FetchEditsLogRequest request);
+
+    public com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidResponse updateCheckpointTxid(com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidRequest request);
+
+    public com.zhss.dfs.namenode.rpc.model.CreateFileResponse create(com.zhss.dfs.namenode.rpc.model.CreateFileRequest request);
+
+    public com.zhss.dfs.namenode.rpc.model.AllocateDataNodesResponse allocateDataNodes(com.zhss.dfs.namenode.rpc.model.AllocateDataNodesRequest request);
+
+    public com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedResponse informReplicaReceived(com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedRequest request);
+
+    public com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoResponse reportCompleteStorageInfo(com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoRequest request);
+
+    public com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileResponse getDataNodeForFile(com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileRequest request);
   }
 
   public static interface NameNodeServiceFutureClient {
@@ -128,6 +212,24 @@ public class NameNodeServiceGrpc {
 
     public com.google.common.util.concurrent.ListenableFuture<com.zhss.dfs.namenode.rpc.model.FetchEditsLogResponse> fetchEditsLog(
             com.zhss.dfs.namenode.rpc.model.FetchEditsLogRequest request);
+
+    public com.google.common.util.concurrent.ListenableFuture<com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidResponse> updateCheckpointTxid(
+            com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidRequest request);
+
+    public com.google.common.util.concurrent.ListenableFuture<com.zhss.dfs.namenode.rpc.model.CreateFileResponse> create(
+            com.zhss.dfs.namenode.rpc.model.CreateFileRequest request);
+
+    public com.google.common.util.concurrent.ListenableFuture<com.zhss.dfs.namenode.rpc.model.AllocateDataNodesResponse> allocateDataNodes(
+            com.zhss.dfs.namenode.rpc.model.AllocateDataNodesRequest request);
+
+    public com.google.common.util.concurrent.ListenableFuture<com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedResponse> informReplicaReceived(
+            com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedRequest request);
+
+    public com.google.common.util.concurrent.ListenableFuture<com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoResponse> reportCompleteStorageInfo(
+            com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoRequest request);
+
+    public com.google.common.util.concurrent.ListenableFuture<com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileResponse> getDataNodeForFile(
+            com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileRequest request);
   }
 
   public static class NameNodeServiceStub extends io.grpc.stub.AbstractStub<NameNodeServiceStub>
@@ -181,6 +283,48 @@ public class NameNodeServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(METHOD_FETCH_EDITS_LOG, getCallOptions()), request, responseObserver);
     }
+
+    @Override
+    public void updateCheckpointTxid(com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidRequest request,
+        io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_UPDATE_CHECKPOINT_TXID, getCallOptions()), request, responseObserver);
+    }
+
+    @Override
+    public void create(com.zhss.dfs.namenode.rpc.model.CreateFileRequest request,
+        io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.CreateFileResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_CREATE, getCallOptions()), request, responseObserver);
+    }
+
+    @Override
+    public void allocateDataNodes(com.zhss.dfs.namenode.rpc.model.AllocateDataNodesRequest request,
+        io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.AllocateDataNodesResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_ALLOCATE_DATA_NODES, getCallOptions()), request, responseObserver);
+    }
+
+    @Override
+    public void informReplicaReceived(com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedRequest request,
+        io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_INFORM_REPLICA_RECEIVED, getCallOptions()), request, responseObserver);
+    }
+
+    @Override
+    public void reportCompleteStorageInfo(com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoRequest request,
+        io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_REPORT_COMPLETE_STORAGE_INFO, getCallOptions()), request, responseObserver);
+    }
+
+    @Override
+    public void getDataNodeForFile(com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileRequest request,
+        io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_GET_DATA_NODE_FOR_FILE, getCallOptions()), request, responseObserver);
+    }
   }
 
   public static class NameNodeServiceBlockingStub extends io.grpc.stub.AbstractStub<NameNodeServiceBlockingStub>
@@ -228,6 +372,42 @@ public class NameNodeServiceGrpc {
     public com.zhss.dfs.namenode.rpc.model.FetchEditsLogResponse fetchEditsLog(com.zhss.dfs.namenode.rpc.model.FetchEditsLogRequest request) {
       return blockingUnaryCall(
           getChannel(), METHOD_FETCH_EDITS_LOG, getCallOptions(), request);
+    }
+
+    @Override
+    public com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidResponse updateCheckpointTxid(com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidRequest request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_UPDATE_CHECKPOINT_TXID, getCallOptions(), request);
+    }
+
+    @Override
+    public com.zhss.dfs.namenode.rpc.model.CreateFileResponse create(com.zhss.dfs.namenode.rpc.model.CreateFileRequest request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_CREATE, getCallOptions(), request);
+    }
+
+    @Override
+    public com.zhss.dfs.namenode.rpc.model.AllocateDataNodesResponse allocateDataNodes(com.zhss.dfs.namenode.rpc.model.AllocateDataNodesRequest request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_ALLOCATE_DATA_NODES, getCallOptions(), request);
+    }
+
+    @Override
+    public com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedResponse informReplicaReceived(com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedRequest request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_INFORM_REPLICA_RECEIVED, getCallOptions(), request);
+    }
+
+    @Override
+    public com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoResponse reportCompleteStorageInfo(com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoRequest request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_REPORT_COMPLETE_STORAGE_INFO, getCallOptions(), request);
+    }
+
+    @Override
+    public com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileResponse getDataNodeForFile(com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileRequest request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_GET_DATA_NODE_FOR_FILE, getCallOptions(), request);
     }
   }
 
@@ -282,6 +462,48 @@ public class NameNodeServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(METHOD_FETCH_EDITS_LOG, getCallOptions()), request);
     }
+
+    @Override
+    public com.google.common.util.concurrent.ListenableFuture<com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidResponse> updateCheckpointTxid(
+        com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_UPDATE_CHECKPOINT_TXID, getCallOptions()), request);
+    }
+
+    @Override
+    public com.google.common.util.concurrent.ListenableFuture<com.zhss.dfs.namenode.rpc.model.CreateFileResponse> create(
+        com.zhss.dfs.namenode.rpc.model.CreateFileRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_CREATE, getCallOptions()), request);
+    }
+
+    @Override
+    public com.google.common.util.concurrent.ListenableFuture<com.zhss.dfs.namenode.rpc.model.AllocateDataNodesResponse> allocateDataNodes(
+        com.zhss.dfs.namenode.rpc.model.AllocateDataNodesRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_ALLOCATE_DATA_NODES, getCallOptions()), request);
+    }
+
+    @Override
+    public com.google.common.util.concurrent.ListenableFuture<com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedResponse> informReplicaReceived(
+        com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_INFORM_REPLICA_RECEIVED, getCallOptions()), request);
+    }
+
+    @Override
+    public com.google.common.util.concurrent.ListenableFuture<com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoResponse> reportCompleteStorageInfo(
+        com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_REPORT_COMPLETE_STORAGE_INFO, getCallOptions()), request);
+    }
+
+    @Override
+    public com.google.common.util.concurrent.ListenableFuture<com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileResponse> getDataNodeForFile(
+        com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_GET_DATA_NODE_FOR_FILE, getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_REGISTER = 0;
@@ -289,6 +511,12 @@ public class NameNodeServiceGrpc {
   private static final int METHODID_MKDIR = 2;
   private static final int METHODID_SHUTDOWN = 3;
   private static final int METHODID_FETCH_EDITS_LOG = 4;
+  private static final int METHODID_UPDATE_CHECKPOINT_TXID = 5;
+  private static final int METHODID_CREATE = 6;
+  private static final int METHODID_ALLOCATE_DATA_NODES = 7;
+  private static final int METHODID_INFORM_REPLICA_RECEIVED = 8;
+  private static final int METHODID_REPORT_COMPLETE_STORAGE_INFO = 9;
+  private static final int METHODID_GET_DATA_NODE_FOR_FILE = 10;
 
   private static class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -325,6 +553,30 @@ public class NameNodeServiceGrpc {
         case METHODID_FETCH_EDITS_LOG:
           serviceImpl.fetchEditsLog((com.zhss.dfs.namenode.rpc.model.FetchEditsLogRequest) request,
               (io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.FetchEditsLogResponse>) responseObserver);
+          break;
+        case METHODID_UPDATE_CHECKPOINT_TXID:
+          serviceImpl.updateCheckpointTxid((com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidRequest) request,
+              (io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidResponse>) responseObserver);
+          break;
+        case METHODID_CREATE:
+          serviceImpl.create((com.zhss.dfs.namenode.rpc.model.CreateFileRequest) request,
+              (io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.CreateFileResponse>) responseObserver);
+          break;
+        case METHODID_ALLOCATE_DATA_NODES:
+          serviceImpl.allocateDataNodes((com.zhss.dfs.namenode.rpc.model.AllocateDataNodesRequest) request,
+              (io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.AllocateDataNodesResponse>) responseObserver);
+          break;
+        case METHODID_INFORM_REPLICA_RECEIVED:
+          serviceImpl.informReplicaReceived((com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedRequest) request,
+              (io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedResponse>) responseObserver);
+          break;
+        case METHODID_REPORT_COMPLETE_STORAGE_INFO:
+          serviceImpl.reportCompleteStorageInfo((com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoRequest) request,
+              (io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoResponse>) responseObserver);
+          break;
+        case METHODID_GET_DATA_NODE_FOR_FILE:
+          serviceImpl.getDataNodeForFile((com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileRequest) request,
+              (io.grpc.stub.StreamObserver<com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -379,6 +631,48 @@ public class NameNodeServiceGrpc {
               com.zhss.dfs.namenode.rpc.model.FetchEditsLogRequest,
               com.zhss.dfs.namenode.rpc.model.FetchEditsLogResponse>(
                 serviceImpl, METHODID_FETCH_EDITS_LOG)))
+        .addMethod(
+          METHOD_UPDATE_CHECKPOINT_TXID,
+          asyncUnaryCall(
+            new MethodHandlers<
+              com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidRequest,
+              com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidResponse>(
+                serviceImpl, METHODID_UPDATE_CHECKPOINT_TXID)))
+        .addMethod(
+          METHOD_CREATE,
+          asyncUnaryCall(
+            new MethodHandlers<
+              com.zhss.dfs.namenode.rpc.model.CreateFileRequest,
+              com.zhss.dfs.namenode.rpc.model.CreateFileResponse>(
+                serviceImpl, METHODID_CREATE)))
+        .addMethod(
+          METHOD_ALLOCATE_DATA_NODES,
+          asyncUnaryCall(
+            new MethodHandlers<
+              com.zhss.dfs.namenode.rpc.model.AllocateDataNodesRequest,
+              com.zhss.dfs.namenode.rpc.model.AllocateDataNodesResponse>(
+                serviceImpl, METHODID_ALLOCATE_DATA_NODES)))
+        .addMethod(
+          METHOD_INFORM_REPLICA_RECEIVED,
+          asyncUnaryCall(
+            new MethodHandlers<
+              com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedRequest,
+              com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedResponse>(
+                serviceImpl, METHODID_INFORM_REPLICA_RECEIVED)))
+        .addMethod(
+          METHOD_REPORT_COMPLETE_STORAGE_INFO,
+          asyncUnaryCall(
+            new MethodHandlers<
+              com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoRequest,
+              com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoResponse>(
+                serviceImpl, METHODID_REPORT_COMPLETE_STORAGE_INFO)))
+        .addMethod(
+          METHOD_GET_DATA_NODE_FOR_FILE,
+          asyncUnaryCall(
+            new MethodHandlers<
+              com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileRequest,
+              com.zhss.dfs.namenode.rpc.model.GetDataNodeForFileResponse>(
+                serviceImpl, METHODID_GET_DATA_NODE_FOR_FILE)))
         .build();
   }
 }

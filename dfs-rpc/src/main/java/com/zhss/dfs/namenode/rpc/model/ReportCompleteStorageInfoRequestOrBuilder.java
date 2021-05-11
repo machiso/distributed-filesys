@@ -3,8 +3,8 @@
 
 package com.zhss.dfs.namenode.rpc.model;
 
-public interface HeartbeatRequestOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:com.zhss.dfs.namenode.rpc.HeartbeatRequest)
+public interface ReportCompleteStorageInfoRequestOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:com.zhss.dfs.namenode.rpc.ReportCompleteStorageInfoRequest)
     com.google.protobuf.MessageOrBuilder {
 
   /**
@@ -28,7 +28,17 @@ public interface HeartbeatRequestOrBuilder extends
       getHostnameBytes();
 
   /**
-   * <code>optional int32 nioPort = 3;</code>
+   * <code>optional string filenames = 3;</code>
    */
-  int getNioPort();
+  String getFilenames();
+  /**
+   * <code>optional string filenames = 3;</code>
+   */
+  com.google.protobuf.ByteString
+      getFilenamesBytes();
+
+  /**
+   * <code>optional int64 storedDataSize = 4;</code>
+   */
+  long getStoredDataSize();
 }

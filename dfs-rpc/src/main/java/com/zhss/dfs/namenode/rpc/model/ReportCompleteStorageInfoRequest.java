@@ -4,20 +4,21 @@
 package com.zhss.dfs.namenode.rpc.model;
 
 /**
- * Protobuf type {@code com.zhss.dfs.namenode.rpc.HeartbeatRequest}
+ * Protobuf type {@code com.zhss.dfs.namenode.rpc.ReportCompleteStorageInfoRequest}
  */
-public  final class HeartbeatRequest extends
+public  final class ReportCompleteStorageInfoRequest extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:com.zhss.dfs.namenode.rpc.HeartbeatRequest)
-    HeartbeatRequestOrBuilder {
-  // Use HeartbeatRequest.newBuilder() to construct.
-  private HeartbeatRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+    // @@protoc_insertion_point(message_implements:com.zhss.dfs.namenode.rpc.ReportCompleteStorageInfoRequest)
+    ReportCompleteStorageInfoRequestOrBuilder {
+  // Use ReportCompleteStorageInfoRequest.newBuilder() to construct.
+  private ReportCompleteStorageInfoRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private HeartbeatRequest() {
+  private ReportCompleteStorageInfoRequest() {
     ip_ = "";
     hostname_ = "";
-    nioPort_ = 0;
+    filenames_ = "";
+    storedDataSize_ = 0L;
   }
 
   @Override
@@ -25,7 +26,7 @@ public  final class HeartbeatRequest extends
   getUnknownFields() {
     return com.google.protobuf.UnknownFieldSet.getDefaultInstance();
   }
-  private HeartbeatRequest(
+  private ReportCompleteStorageInfoRequest(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -57,9 +58,15 @@ public  final class HeartbeatRequest extends
             hostname_ = s;
             break;
           }
-          case 24: {
+          case 26: {
+            String s = input.readStringRequireUtf8();
 
-            nioPort_ = input.readInt32();
+            filenames_ = s;
+            break;
+          }
+          case 32: {
+
+            storedDataSize_ = input.readInt64();
             break;
           }
         }
@@ -75,14 +82,14 @@ public  final class HeartbeatRequest extends
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_HeartbeatRequest_descriptor;
+    return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_ReportCompleteStorageInfoRequest_descriptor;
   }
 
   protected FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_HeartbeatRequest_fieldAccessorTable
+    return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_ReportCompleteStorageInfoRequest_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            HeartbeatRequest.class, Builder.class);
+            ReportCompleteStorageInfoRequest.class, Builder.class);
   }
 
   public static final int IP_FIELD_NUMBER = 1;
@@ -153,13 +160,47 @@ public  final class HeartbeatRequest extends
     }
   }
 
-  public static final int NIOPORT_FIELD_NUMBER = 3;
-  private int nioPort_;
+  public static final int FILENAMES_FIELD_NUMBER = 3;
+  private volatile Object filenames_;
   /**
-   * <code>optional int32 nioPort = 3;</code>
+   * <code>optional string filenames = 3;</code>
    */
-  public int getNioPort() {
-    return nioPort_;
+  public String getFilenames() {
+    Object ref = filenames_;
+    if (ref instanceof String) {
+      return (String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      String s = bs.toStringUtf8();
+      filenames_ = s;
+      return s;
+    }
+  }
+  /**
+   * <code>optional string filenames = 3;</code>
+   */
+  public com.google.protobuf.ByteString
+      getFilenamesBytes() {
+    Object ref = filenames_;
+    if (ref instanceof String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (String) ref);
+      filenames_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int STOREDDATASIZE_FIELD_NUMBER = 4;
+  private long storedDataSize_;
+  /**
+   * <code>optional int64 storedDataSize = 4;</code>
+   */
+  public long getStoredDataSize() {
+    return storedDataSize_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -180,8 +221,11 @@ public  final class HeartbeatRequest extends
     if (!getHostnameBytes().isEmpty()) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, hostname_);
     }
-    if (nioPort_ != 0) {
-      output.writeInt32(3, nioPort_);
+    if (!getFilenamesBytes().isEmpty()) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, filenames_);
+    }
+    if (storedDataSize_ != 0L) {
+      output.writeInt64(4, storedDataSize_);
     }
   }
 
@@ -196,9 +240,12 @@ public  final class HeartbeatRequest extends
     if (!getHostnameBytes().isEmpty()) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, hostname_);
     }
-    if (nioPort_ != 0) {
+    if (!getFilenamesBytes().isEmpty()) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, filenames_);
+    }
+    if (storedDataSize_ != 0L) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(3, nioPort_);
+        .computeInt64Size(4, storedDataSize_);
     }
     memoizedSize = size;
     return size;
@@ -210,18 +257,20 @@ public  final class HeartbeatRequest extends
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof HeartbeatRequest)) {
+    if (!(obj instanceof ReportCompleteStorageInfoRequest)) {
       return super.equals(obj);
     }
-    HeartbeatRequest other = (HeartbeatRequest) obj;
+    ReportCompleteStorageInfoRequest other = (ReportCompleteStorageInfoRequest) obj;
 
     boolean result = true;
     result = result && getIp()
         .equals(other.getIp());
     result = result && getHostname()
         .equals(other.getHostname());
-    result = result && (getNioPort()
-        == other.getNioPort());
+    result = result && getFilenames()
+        .equals(other.getFilenames());
+    result = result && (getStoredDataSize()
+        == other.getStoredDataSize());
     return result;
   }
 
@@ -236,65 +285,68 @@ public  final class HeartbeatRequest extends
     hash = (53 * hash) + getIp().hashCode();
     hash = (37 * hash) + HOSTNAME_FIELD_NUMBER;
     hash = (53 * hash) + getHostname().hashCode();
-    hash = (37 * hash) + NIOPORT_FIELD_NUMBER;
-    hash = (53 * hash) + getNioPort();
+    hash = (37 * hash) + FILENAMES_FIELD_NUMBER;
+    hash = (53 * hash) + getFilenames().hashCode();
+    hash = (37 * hash) + STOREDDATASIZE_FIELD_NUMBER;
+    hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+        getStoredDataSize());
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static HeartbeatRequest parseFrom(
+  public static ReportCompleteStorageInfoRequest parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static HeartbeatRequest parseFrom(
+  public static ReportCompleteStorageInfoRequest parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static HeartbeatRequest parseFrom(byte[] data)
+  public static ReportCompleteStorageInfoRequest parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static HeartbeatRequest parseFrom(
+  public static ReportCompleteStorageInfoRequest parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static HeartbeatRequest parseFrom(java.io.InputStream input)
+  public static ReportCompleteStorageInfoRequest parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static HeartbeatRequest parseFrom(
+  public static ReportCompleteStorageInfoRequest parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static HeartbeatRequest parseDelimitedFrom(java.io.InputStream input)
+  public static ReportCompleteStorageInfoRequest parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static HeartbeatRequest parseDelimitedFrom(
+  public static ReportCompleteStorageInfoRequest parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static HeartbeatRequest parseFrom(
+  public static ReportCompleteStorageInfoRequest parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static HeartbeatRequest parseFrom(
+  public static ReportCompleteStorageInfoRequest parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -306,7 +358,7 @@ public  final class HeartbeatRequest extends
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(HeartbeatRequest prototype) {
+  public static Builder newBuilder(ReportCompleteStorageInfoRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -321,25 +373,25 @@ public  final class HeartbeatRequest extends
     return builder;
   }
   /**
-   * Protobuf type {@code com.zhss.dfs.namenode.rpc.HeartbeatRequest}
+   * Protobuf type {@code com.zhss.dfs.namenode.rpc.ReportCompleteStorageInfoRequest}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:com.zhss.dfs.namenode.rpc.HeartbeatRequest)
-      HeartbeatRequestOrBuilder {
+      // @@protoc_insertion_point(builder_implements:com.zhss.dfs.namenode.rpc.ReportCompleteStorageInfoRequest)
+      ReportCompleteStorageInfoRequestOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_HeartbeatRequest_descriptor;
+      return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_ReportCompleteStorageInfoRequest_descriptor;
     }
 
     protected FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_HeartbeatRequest_fieldAccessorTable
+      return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_ReportCompleteStorageInfoRequest_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              HeartbeatRequest.class, Builder.class);
+              ReportCompleteStorageInfoRequest.class, Builder.class);
     }
 
-    // Construct using com.zhss.dfs.namenode.rpc.model.HeartbeatRequest.newBuilder()
+    // Construct using com.zhss.dfs.namenode.rpc.model.ReportCompleteStorageInfoRequest.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -360,33 +412,36 @@ public  final class HeartbeatRequest extends
 
       hostname_ = "";
 
-      nioPort_ = 0;
+      filenames_ = "";
+
+      storedDataSize_ = 0L;
 
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_HeartbeatRequest_descriptor;
+      return NameNodeRpcModel.internal_static_com_zhss_dfs_namenode_rpc_ReportCompleteStorageInfoRequest_descriptor;
     }
 
-    public HeartbeatRequest getDefaultInstanceForType() {
-      return HeartbeatRequest.getDefaultInstance();
+    public ReportCompleteStorageInfoRequest getDefaultInstanceForType() {
+      return ReportCompleteStorageInfoRequest.getDefaultInstance();
     }
 
-    public HeartbeatRequest build() {
-      HeartbeatRequest result = buildPartial();
+    public ReportCompleteStorageInfoRequest build() {
+      ReportCompleteStorageInfoRequest result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public HeartbeatRequest buildPartial() {
-      HeartbeatRequest result = new HeartbeatRequest(this);
+    public ReportCompleteStorageInfoRequest buildPartial() {
+      ReportCompleteStorageInfoRequest result = new ReportCompleteStorageInfoRequest(this);
       result.ip_ = ip_;
       result.hostname_ = hostname_;
-      result.nioPort_ = nioPort_;
+      result.filenames_ = filenames_;
+      result.storedDataSize_ = storedDataSize_;
       onBuilt();
       return result;
     }
@@ -418,16 +473,16 @@ public  final class HeartbeatRequest extends
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof HeartbeatRequest) {
-        return mergeFrom((HeartbeatRequest)other);
+      if (other instanceof ReportCompleteStorageInfoRequest) {
+        return mergeFrom((ReportCompleteStorageInfoRequest)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(HeartbeatRequest other) {
-      if (other == HeartbeatRequest.getDefaultInstance()) return this;
+    public Builder mergeFrom(ReportCompleteStorageInfoRequest other) {
+      if (other == ReportCompleteStorageInfoRequest.getDefaultInstance()) return this;
       if (!other.getIp().isEmpty()) {
         ip_ = other.ip_;
         onChanged();
@@ -436,8 +491,12 @@ public  final class HeartbeatRequest extends
         hostname_ = other.hostname_;
         onChanged();
       }
-      if (other.getNioPort() != 0) {
-        setNioPort(other.getNioPort());
+      if (!other.getFilenames().isEmpty()) {
+        filenames_ = other.filenames_;
+        onChanged();
+      }
+      if (other.getStoredDataSize() != 0L) {
+        setStoredDataSize(other.getStoredDataSize());
       }
       onChanged();
       return this;
@@ -451,11 +510,11 @@ public  final class HeartbeatRequest extends
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      HeartbeatRequest parsedMessage = null;
+      ReportCompleteStorageInfoRequest parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (HeartbeatRequest) e.getUnfinishedMessage();
+        parsedMessage = (ReportCompleteStorageInfoRequest) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -603,28 +662,97 @@ public  final class HeartbeatRequest extends
       return this;
     }
 
-    private int nioPort_ ;
+    private Object filenames_ = "";
     /**
-     * <code>optional int32 nioPort = 3;</code>
+     * <code>optional string filenames = 3;</code>
      */
-    public int getNioPort() {
-      return nioPort_;
+    public String getFilenames() {
+      Object ref = filenames_;
+      if (!(ref instanceof String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        filenames_ = s;
+        return s;
+      } else {
+        return (String) ref;
+      }
     }
     /**
-     * <code>optional int32 nioPort = 3;</code>
+     * <code>optional string filenames = 3;</code>
      */
-    public Builder setNioPort(int value) {
-      
-      nioPort_ = value;
+    public com.google.protobuf.ByteString
+        getFilenamesBytes() {
+      Object ref = filenames_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (String) ref);
+        filenames_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string filenames = 3;</code>
+     */
+    public Builder setFilenames(
+        String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  
+      filenames_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int32 nioPort = 3;</code>
+     * <code>optional string filenames = 3;</code>
      */
-    public Builder clearNioPort() {
+    public Builder clearFilenames() {
       
-      nioPort_ = 0;
+      filenames_ = getDefaultInstance().getFilenames();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string filenames = 3;</code>
+     */
+    public Builder setFilenamesBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+      
+      filenames_ = value;
+      onChanged();
+      return this;
+    }
+
+    private long storedDataSize_ ;
+    /**
+     * <code>optional int64 storedDataSize = 4;</code>
+     */
+    public long getStoredDataSize() {
+      return storedDataSize_;
+    }
+    /**
+     * <code>optional int64 storedDataSize = 4;</code>
+     */
+    public Builder setStoredDataSize(long value) {
+      
+      storedDataSize_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 storedDataSize = 4;</code>
+     */
+    public Builder clearStoredDataSize() {
+      
+      storedDataSize_ = 0L;
       onChanged();
       return this;
     }
@@ -639,39 +767,39 @@ public  final class HeartbeatRequest extends
     }
 
 
-    // @@protoc_insertion_point(builder_scope:com.zhss.dfs.namenode.rpc.HeartbeatRequest)
+    // @@protoc_insertion_point(builder_scope:com.zhss.dfs.namenode.rpc.ReportCompleteStorageInfoRequest)
   }
 
-  // @@protoc_insertion_point(class_scope:com.zhss.dfs.namenode.rpc.HeartbeatRequest)
-  private static final HeartbeatRequest DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:com.zhss.dfs.namenode.rpc.ReportCompleteStorageInfoRequest)
+  private static final ReportCompleteStorageInfoRequest DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new HeartbeatRequest();
+    DEFAULT_INSTANCE = new ReportCompleteStorageInfoRequest();
   }
 
-  public static HeartbeatRequest getDefaultInstance() {
+  public static ReportCompleteStorageInfoRequest getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  private static final com.google.protobuf.Parser<HeartbeatRequest>
-      PARSER = new com.google.protobuf.AbstractParser<HeartbeatRequest>() {
-    public HeartbeatRequest parsePartialFrom(
+  private static final com.google.protobuf.Parser<ReportCompleteStorageInfoRequest>
+      PARSER = new com.google.protobuf.AbstractParser<ReportCompleteStorageInfoRequest>() {
+    public ReportCompleteStorageInfoRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-        return new HeartbeatRequest(input, extensionRegistry);
+        return new ReportCompleteStorageInfoRequest(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<HeartbeatRequest> parser() {
+  public static com.google.protobuf.Parser<ReportCompleteStorageInfoRequest> parser() {
     return PARSER;
   }
 
   @Override
-  public com.google.protobuf.Parser<HeartbeatRequest> getParserForType() {
+  public com.google.protobuf.Parser<ReportCompleteStorageInfoRequest> getParserForType() {
     return PARSER;
   }
 
-  public HeartbeatRequest getDefaultInstanceForType() {
+  public ReportCompleteStorageInfoRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

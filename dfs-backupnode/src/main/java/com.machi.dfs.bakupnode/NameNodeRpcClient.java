@@ -3,6 +3,8 @@ package com.machi.dfs.bakupnode;
 import com.alibaba.fastjson.JSONArray;
 import com.zhss.dfs.namenode.rpc.model.FetchEditsLogRequest;
 import com.zhss.dfs.namenode.rpc.model.FetchEditsLogResponse;
+import com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidRequest;
+import com.zhss.dfs.namenode.rpc.model.UpdateCheckpointTxidResponse;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
@@ -30,9 +32,10 @@ public class NameNodeRpcClient {
      * 抓取editslog数据
      * @return
      */
-    public JSONArray fetchEditsLog() {
+    public JSONArray fetchEditsLog(long syncedTxid) {
         FetchEditsLogRequest request = FetchEditsLogRequest.newBuilder()
-                .setCode(1)
+                //每次抓取的时候带上txid，namenode知道从哪个txid继续同步
+                .setSyncedTxid(syncedTxid)
                 .build();
 
         FetchEditsLogResponse response = namenode.fetchEditsLog(request);
@@ -42,6 +45,14 @@ public class NameNodeRpcClient {
     }
 
 
+    public void updateCheckpointTxid(long maxTxid) {
+        UpdateCheckpointTxidRequest request = UpdateCheckpointTxidRequest.newBuilder()
+                .setTxid(maxTxid)
+                .build();
+
+        UpdateCheckpointTxidResponse response = namenode.updateCheckpointTxid(request);
+        response.getStatus();
+    }
 }
 
 
