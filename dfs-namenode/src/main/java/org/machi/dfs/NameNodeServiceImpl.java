@@ -6,7 +6,6 @@ import com.zhss.dfs.namenode.rpc.model.*;
 import io.grpc.stub.StreamObserver;
 import com.zhss.dfs.namenode.rpc.service.NameNodeServiceGrpc;
 
-import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -136,6 +135,10 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 			responseObserver.onCompleted();
 			return;
 		}
+
+		//获取当前backupnode同步到editlog的txid
+		this.syncedTxid = request.getSyncedTxid();
+
 		JSONArray fetchedEditsLog = new JSONArray();
 
 		List<String> flushedTxids = namesystem.getEditsLog().getFlushedTxids();
