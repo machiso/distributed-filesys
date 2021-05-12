@@ -60,14 +60,7 @@ public class FSDirectory {
 	//创建目录
 	//这里采用读写锁来保证并发安全性，主要是创建目录和check point检查点之间，一个要对文件目录树进行添加，一个要对文件目录树进行读取
 	public void mkdir(long txid,String path) {
-		// path = /usr/warehouse/hive
-		// 你应该先判断一下，“/”根目录下有没有一个“usr”目录的存在
-		// 如果说有的话，那么再判断一下，“/usr”目录下，有没有一个“/warehouse”目录的存在
-		// 如果说没有，那么就得先创建一个“/warehosue”对应的目录，挂在“/usr”目录下
-		// 接着再对“/hive”这个目录创建一个节点挂载上去
 
-
-		//这里需要采用锁将整个文件内存目录树给加锁，保证内存数据的数据一致性
 		try {
 			writeLock();
 
@@ -164,6 +157,21 @@ public class FSDirectory {
 		public void setChildren(List<INode> children) {
 			this.children = children;
 		}
-		
+	}
+
+	public long getMaxTxid() {
+		return maxTxid;
+	}
+
+	public void setMaxTxid(long maxTxid) {
+		this.maxTxid = maxTxid;
+	}
+
+	public INode getDirTree() {
+		return dirTree;
+	}
+
+	public void setDirTree(INode dirTree) {
+		this.dirTree = dirTree;
 	}
 }
