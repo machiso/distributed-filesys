@@ -127,7 +127,9 @@ public class FSDirectory {
 	}
 
 	public boolean createFile(String filename) {
-		synchronized(dirTree) {
+		try {
+			writeLock();
+
 			String[] splitedFileName = filename.split("/");
 			String fileRealPath = splitedFileName[splitedFileName.length - 1];
 			INode parentTree = dirTree;
@@ -156,6 +158,8 @@ public class FSDirectory {
 			INode iNode = new INode(fileRealPath);
 			parentTree.addChild(iNode);
 			return true;
+		}finally {
+			writeUnLock();
 		}
 	}
 
