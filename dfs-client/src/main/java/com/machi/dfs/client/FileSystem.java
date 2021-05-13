@@ -10,4 +10,7 @@ public interface FileSystem {
 
     //优雅关闭
     void shutdown();
+
+    //文件上传
+    void create(byte[] file,String fileName);
 }

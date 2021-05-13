@@ -125,7 +125,52 @@ public class FSDirectory {
 
 		return null;
 	}
-	
+
+	public boolean createFile(String filename) {
+		synchronized(dirTree) {
+			String[] splitedFileName = filename.split("/");
+			String fileRealPath = splitedFileName[splitedFileName.length - 1];
+			INode parentTree = dirTree;
+
+			for(String splitedPath : splitedFileName) {
+				if(splitedPath.trim().equals("")) {
+					continue;
+				}
+
+				INode dir = findDirectory(parentTree, splitedPath);
+				if(dir != null) {
+					parentTree = dir;
+					continue;
+				}
+
+				INode child = new INode(splitedPath);
+				parentTree.addChild(child);
+
+				parentTree = child;
+			}
+
+			if (existFile(parentTree,fileRealPath)){
+				return false;
+			}
+
+			INode iNode = new INode(fileRealPath);
+			parentTree.addChild(iNode);
+			return true;
+		}
+	}
+
+	private boolean existFile(INode parent, String fileRealPath) {
+		if (parent.getChildren() != null && parent.getChildren().size() > 0){
+			List<INode> iNodes = parent.getChildren();
+			for (INode node : iNodes){
+				if (fileRealPath.equals(node.getPath())){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * 代表文件目录树中的一个目录
 	 * @author machi

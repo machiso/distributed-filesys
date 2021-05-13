@@ -22,6 +22,7 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 	public static final Integer STATUS_SUCCESS = 1;
 	public static final Integer STATUS_FAILURE = 2;
 	public static final Integer STATUS_SHUTDOWN = 3;
+	public static final Integer STATUS_DUPLICATE = 4;
 
 	private static final int BACKUP_NODE_FETCH_SIZE = 20;
 
@@ -303,6 +304,33 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 
 	@Override
 	public void create(CreateFileRequest request, StreamObserver<CreateFileResponse> responseObserver) {
+		try {
+			CreateFileResponse response = null;
+			if (!isRunning){
+				 response = CreateFileResponse.newBuilder()
+						.setStatus(STATUS_SHUTDOWN)
+						.build();
+				responseObserver.onNext(response);
+				responseObserver.onCompleted();
+			}
+			String filename = request.getFilename();
+			//上传操作
+			boolean createFlag = namesystem.createFile(filename);
+			if (createFlag){
+				response = CreateFileResponse.newBuilder()
+						.setStatus(STATUS_SUCCESS)
+						.build();
+			}else {
+				//已经存在目录
+				response = CreateFileResponse.newBuilder()
+						.setStatus(STATUS_DUPLICATE)
+						.build();
+			}
+			responseObserver.onNext(response);
+			responseObserver.onCompleted();
+		}catch (Exception e){
+			e.printStackTrace();
+		}
 
 	}
 

@@ -155,4 +155,8 @@ public class FSNamesystem {
 	public void setCheckpointFile(String checkpointFile) {
 		this.checkpointFile = checkpointFile;
 	}
+
+	public void createFile(String filename) {
+		directory.createFile(filename);
+	}
 }

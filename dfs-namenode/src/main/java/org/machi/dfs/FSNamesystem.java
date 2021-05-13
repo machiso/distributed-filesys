@@ -135,6 +135,9 @@ public class FSNamesystem {
 							if ("MKDIR".equals(op)){
 								String paths = jsonObject.getString("PATH");
 								directory.mkdir(paths);
+							}else if ("CREATE".equals(op)){
+								String filename = jsonObject.getString("PATH");
+								directory.createFile(filename);
 							}
 						}
 					});
@@ -174,7 +177,7 @@ public class FSNamesystem {
 	//创建目录
 	public Boolean mkdir(String path){
 		this.directory.mkdir(path); 
-		this.editlog.logEdit("{'OP':'MKDIR','PATH':'" + path + "'}");
+		this.editlog.logEdit(EditLogFactory.mkdir(path));
 		return true;
 	}
 
@@ -238,5 +241,13 @@ public class FSNamesystem {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public boolean createFile(String filename) {
+		if (!directory.createFile(filename)){
+			return false;
+		}
+		editlog.logEdit(EditLogFactory.create(filename));
+		return true;
 	}
 }
