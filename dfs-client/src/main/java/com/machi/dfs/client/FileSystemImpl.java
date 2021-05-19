@@ -53,5 +53,16 @@ public class FileSystemImpl implements FileSystem{
         int status = response.getStatus();
     }
 
+    //分配双副本对应的数据节点
+    private String allocateDataNodes(String filename, long fileSize) {
+        AllocateDataNodesRequest request = AllocateDataNodesRequest.newBuilder()
+                .setFilename(filename)
+                .setFileSize(fileSize)
+                .build();
+
+        AllocateDataNodesResponse response = namenodeStub.allocateDataNodes(request);
+        return response.getDatanodes();
+    }
+
 
 }

@@ -1,11 +1,6 @@
 package org.machi.dfs;
 
-import org.machi.dfs.DataNodeInfo;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -50,7 +45,32 @@ public class DataNodeManager {
 		return true;
 	}
 
-	/**
+	//分配双副本对应的数据节点
+	public List<DataNodeInfo> allocateDataNodes(long fileSize) {
+		synchronized(this) {
+			// 取出来所有的datanode，并且按照已经存储的数据大小来排序
+			List<DataNodeInfo> datanodeList = new ArrayList<DataNodeInfo>();
+			for(DataNodeInfo datanode : datanodes.values()) {
+				datanodeList.add(datanode);
+			}
+
+			Collections.sort(datanodeList);
+
+			// 选择存储数据最少的头两个datanode出来
+			List<DataNodeInfo> selectedDatanodes = new ArrayList<DataNodeInfo>();
+			if(datanodeList.size() >= 2) {
+				selectedDatanodes.add(datanodeList.get(0));
+				selectedDatanodes.add(datanodeList.get(1));
+
+				//更新这两个datanode的已经存储的数据大小
+				datanodeList.get(0).addStoredDataSize(fileSize);
+				datanodeList.get(1).addStoredDataSize(fileSize);
+			}
+			return selectedDatanodes;
+		}
+	}
+
+    /**
 	 * datanode是否存活的监控线程
 	 * @author machi
 	 *
