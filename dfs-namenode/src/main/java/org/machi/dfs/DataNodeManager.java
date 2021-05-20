@@ -13,8 +13,7 @@ public class DataNodeManager {
 	/**
 	 * 集群中所有的datanode
 	 */
-	private Map<String, DataNodeInfo> datanodes =
-			new ConcurrentHashMap<String, DataNodeInfo>();
+	private Map<String, DataNodeInfo> datanodes = new ConcurrentHashMap<String, DataNodeInfo>();
 
 	public DataNodeManager() {
 		new DataNodeAliveMonitor().start();
@@ -70,7 +69,11 @@ public class DataNodeManager {
 		}
 	}
 
-    /**
+	public DataNodeInfo getDatanode(String ip, String hostname) {
+		return datanodes.get(ip + "-" + hostname);
+	}
+
+	/**
 	 * datanode是否存活的监控线程
 	 * @author machi
 	 *

@@ -1,5 +1,7 @@
 package org.machi.dfs;
 
+import com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedRequest;
+
 import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -8,22 +10,17 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author machi
  *
  */
-public class NameNodeOfferService {
+public class NameNodeRpcClient {
 
 	/**
 	 * 负责跟NameNode主节点通信的ServiceActor组件
 	 */
 	private NameNodeServiceActor activeServiceActor;
-
-	/**
-	 * 这个datanode上保存的ServiceActor列表
-	 */
-	private CopyOnWriteArrayList<NameNodeServiceActor> serviceActors;
 	
 	/**
 	 * 构造函数
 	 */
-	public NameNodeOfferService() {
+	public NameNodeRpcClient() {
 		this.activeServiceActor = new NameNodeServiceActor();
 	}
 	
@@ -54,23 +51,9 @@ public class NameNodeOfferService {
 	private void startHeartbeat() {
 		this.activeServiceActor.startHeartbeat();
 	}
-	
-	/**
-	 * 关闭指定的一个ServiceActor
-	 * @param serviceActor
-	 */
-	public void shutdown(NameNodeServiceActor serviceActor) { 
-		this.serviceActors.remove(serviceActor);
+
+	//上报增量数据到namendoe
+	public void informReplicaReceived(String relativeFilename) {
+		activeServiceActor.informReplicaReceived(relativeFilename);
 	}
-	
-	/**
-	 * 迭代遍历ServiceActor
-	 */
-	public void iterateServiceActors() {
-		Iterator<NameNodeServiceActor> iterator = serviceActors.iterator();
-		while(iterator.hasNext()) {
-			iterator.next();
-		}
-	}
-	  
 }

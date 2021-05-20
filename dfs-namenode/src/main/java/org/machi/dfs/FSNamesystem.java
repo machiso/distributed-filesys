@@ -9,10 +9,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * 负责管理元数据的核心组件
@@ -32,10 +29,18 @@ public class FSNamesystem {
 
 	//最近一次fsimage文件的最大txid
 	private long fsImageCheckPointTxid;
-	
-	public FSNamesystem() {
+
+	//每个文件对应的副本所在的DataNode
+	private Map<String, List<DataNodeInfo>> replicasByFilename =
+			new HashMap<String, List<DataNodeInfo>>();
+
+	//datanode管理组件
+	private DataNodeManager dataNodeManager;
+
+	public FSNamesystem(DataNodeManager dataNodeManager) {
 		this.directory = new FSDirectory();
 		this.editlog = new FSEditlog(this);
+		this.dataNodeManager = dataNodeManager;
 		recoverNameSpace();
 	}
 
@@ -249,5 +254,17 @@ public class FSNamesystem {
 		}
 		editlog.logEdit(EditLogFactory.create(filename));
 		return true;
+	}
+
+	public void addReceivedReplica(String hostname, String ip, String filename) {
+		synchronized(replicasByFilename) {
+			List<DataNodeInfo> replicas = replicasByFilename.get(filename);
+			if(replicas == null) {
+				replicas = new ArrayList<DataNodeInfo>();
+				replicasByFilename.put(filename, replicas);
+			}
+			DataNodeInfo datanode = dataNodeManager.getDatanode(ip, hostname);
+			replicas.add(datanode);
+		}
 	}
 }

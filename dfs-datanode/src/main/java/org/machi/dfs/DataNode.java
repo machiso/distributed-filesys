@@ -14,14 +14,14 @@ public class DataNode {
 	/**
 	 * 负责跟一组NameNode通信的组件
 	 */
-	private NameNodeOfferService offerService;
+	private NameNodeRpcClient offerService;
 	
 	/**
 	 * 初始化DataNode
 	 */
 	private void initialize() {
 		this.shouldRun = true;
-		this.offerService = new NameNodeOfferService();
+		this.offerService = new NameNodeRpcClient();
 		this.offerService.start();  
 	}
 	

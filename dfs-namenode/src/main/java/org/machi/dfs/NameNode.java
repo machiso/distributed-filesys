@@ -35,7 +35,7 @@ public class NameNode {
 	 * 初始化NameNode
 	 */
 	private void initialize() {
-		this.namesystem = new FSNamesystem();
+		this.namesystem = new FSNamesystem(datanodeManager);
 		this.datanodeManager = new DataNodeManager();
 		this.rpcServer = new NameNodeRpcServer(this.namesystem, this.datanodeManager);
 		this.fsImageFileUploadServer = new FSImageFileUploadServer();

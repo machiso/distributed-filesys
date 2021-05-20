@@ -1,12 +1,9 @@
 package org.machi.dfs;
 
+import com.zhss.dfs.namenode.rpc.model.*;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
-import com.zhss.dfs.namenode.rpc.model.HeartbeatRequest;
-import com.zhss.dfs.namenode.rpc.model.HeartbeatResponse;
-import com.zhss.dfs.namenode.rpc.model.RegisterRequest;
-import com.zhss.dfs.namenode.rpc.model.RegisterResponse;
 import com.zhss.dfs.namenode.rpc.service.NameNodeServiceGrpc;
 
 
@@ -43,6 +40,12 @@ public class NameNodeServiceActor {
 	// 向NameNode进行心跳
 	public void startHeartbeat() {
 		new HeartbeatThread().start();
+	}
+
+	public void informReplicaReceived(String relativeFilename) {
+		InformReplicaReceivedRequest request = InformReplicaReceivedRequest.newBuilder()
+				.setFilename(relativeFilename).build();
+		InformReplicaReceivedResponse response = namenode.informReplicaReceived(request);
 	}
 
 	/**
