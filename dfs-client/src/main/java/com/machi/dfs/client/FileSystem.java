@@ -12,5 +12,5 @@ public interface FileSystem {
     void shutdown();
 
     //文件上传
-    void create(byte[] file,String fileName);
+    void upload(byte[] file,String fileName);
 }

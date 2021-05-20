@@ -1,59 +1,87 @@
 package org.machi.dfs;
 
-import com.zhss.dfs.namenode.rpc.model.InformReplicaReceivedRequest;
+import com.alibaba.fastjson.JSONArray;
+import com.zhss.dfs.namenode.rpc.model.*;
+import com.zhss.dfs.namenode.rpc.service.NameNodeServiceGrpc;
+import io.grpc.ManagedChannel;
+import io.grpc.netty.NegotiationType;
+import io.grpc.netty.NettyChannelBuilder;
+import static org.machi.dfs.DataNodeConfig.*;
 
-import java.util.Iterator;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-/**
- * 负责跟一组NameNode进行通信的OfferServie组件
- * @author machi
- *
- */
 public class NameNodeRpcClient {
 
-	/**
-	 * 负责跟NameNode主节点通信的ServiceActor组件
-	 */
-	private NameNodeServiceActor activeServiceActor;
-	
-	/**
-	 * 构造函数
-	 */
+	private NameNodeServiceGrpc.NameNodeServiceBlockingStub namenode;
+
 	public NameNodeRpcClient() {
-		this.activeServiceActor = new NameNodeServiceActor();
+		ManagedChannel channel = NettyChannelBuilder
+				.forAddress(NAMENODE_HOSTNAME, NAMENODE_PORT)
+				.negotiationType(NegotiationType.PLAINTEXT)
+				.build();
+		this.namenode = NameNodeServiceGrpc.newBlockingStub(channel);
 	}
 	
-	/**
-	 * 启动OfferService组件
-	 */
-	public void start() {
-		// 直接使用两个ServiceActor组件分别向主备两个NameNode节点进行注册
-		register();
-		// 开始发送心跳
-		startHeartbeat();
-	}
-	
-	/**
-	 * 向主备两个NameNode节点进行注册
-	 */
-	private void register() {
-		try {
-			this.activeServiceActor.register();
-		} catch (Exception e) {
-			e.printStackTrace();  
-		}
+
+	public boolean register() {
+		// 通过RPC接口发送到NameNode他的注册接口上去
+		RegisterRequest registerRequest = RegisterRequest.newBuilder()
+				.setIp(DATANODE_IP)
+				.setHostname(DATANODE_HOSTNAME)
+				.build();
+		RegisterResponse response = namenode.register(registerRequest);
+		System.out.println("收到namenode返回的注册响应:"+response.getStatus());
+
+		return response.getStatus() == 1 ? true : false;
 	}
 
-	/**
-	 * 开始发送心跳给NameNode
-	 */
-	private void startHeartbeat() {
-		this.activeServiceActor.startHeartbeat();
+
+	public void startHeartbeat() {
+		new HeartbeatThread().start();
 	}
 
 	//上报增量数据到namendoe
-	public void informReplicaReceived(String relativeFilename) {
-		activeServiceActor.informReplicaReceived(relativeFilename);
+	public void informReplicaReceived(String filename) {
+		InformReplicaReceivedRequest request = InformReplicaReceivedRequest.newBuilder()
+				.setHostname(DATANODE_HOSTNAME)
+				.setIp(DATANODE_IP)
+				.setFilename(filename)
+				.build();
+		namenode.informReplicaReceived(request);
+	}
+
+	//全量上报
+	public void reportCompleteStorageInfo(StorageInfo storageInfo) {
+		ReportCompleteStorageInfoRequest request = ReportCompleteStorageInfoRequest.newBuilder()
+				.setIp(DATANODE_IP)
+				.setHostname(NAMENODE_HOSTNAME)
+				.setStoredDataSize(storageInfo.getStoredDataSize())
+				.setFilenames(JSONArray.toJSONString(storageInfo.getFilenames()))
+				.build();
+
+		namenode.reportCompleteStorageInfo(request);
+	}
+
+	private class HeartbeatThread extends Thread{
+		@Override
+		public void run() {
+			while (true){
+				try {
+					String ip = "127.0.0.1";
+					String hostname = "dfs-data-01";
+
+					HeartbeatRequest heartbeatRequest = HeartbeatRequest.newBuilder()
+							.setIp(ip)
+							.setHostname(hostname)
+							.build();
+
+					HeartbeatResponse heartbeatResponse = namenode.heartbeat(heartbeatRequest);
+					System.out.println("收到namenode返回的心跳响应"+heartbeatResponse.getStatus());
+
+					Thread.sleep(10 * 1000);
+				}
+				catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 }
