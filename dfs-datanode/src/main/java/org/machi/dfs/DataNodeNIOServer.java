@@ -20,18 +20,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import static org.machi.dfs.DataNodeConfig.*;
 
-/**
- * 数据节点的NIOServer
- * @author zhonghuashishan
- *
- */
 public class DataNodeNIOServer extends Thread {
 
 	// NIO的selector，负责多路复用监听多个连接的请求
 	private Selector selector;
 	// 内存队列，无界队列
-	private List<LinkedBlockingQueue<SelectionKey>> queues =
-			new ArrayList<LinkedBlockingQueue<SelectionKey>>();
+	private List<LinkedBlockingQueue<SelectionKey>> queues = new ArrayList<LinkedBlockingQueue<SelectionKey>>();
 	// 缓存的没读取完的文件数据
 	private Map<String, CachedImage> cachedImages = new HashMap<String, CachedImage>();
 	// 与NameNode进行通信的客户端
@@ -61,7 +55,7 @@ public class DataNodeNIOServer extends Thread {
 				new Worker(queues.get(i)).start();
 			}
 
-			System.out.println("NIOServer已经启动，开始监听端口：" + NIO_PORT);
+			System.out.println("DataNode NIOServer已经启动，开始监听端口：" + NIO_PORT);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

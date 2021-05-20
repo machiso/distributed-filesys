@@ -266,4 +266,16 @@ public class FSNamesystem {
 			replicas.add(datanode);
 		}
 	}
+
+	public DataNodeInfo getDataNodeForFile(String filename) {
+		synchronized (replicasByFilename){
+			List<DataNodeInfo> dataNodeInfos = replicasByFilename.get(filename);
+			int size = dataNodeInfos.size();
+
+			Random random = new Random();
+			int index = random.nextInt(size);
+
+			return dataNodeInfos.get(index);
+		}
+	}
 }

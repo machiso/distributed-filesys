@@ -12,5 +12,8 @@ public interface FileSystem {
     void shutdown();
 
     //文件上传
-    void upload(byte[] file,String fileName);
+    Boolean upload(byte[] file,String fileName,long fileSize);
+
+    //下载文件
+    byte[] download(String filename) throws Exception;
 }
