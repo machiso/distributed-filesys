@@ -31,8 +31,7 @@ public class FSNamesystem {
 	private long fsImageCheckPointTxid;
 
 	//每个文件对应的副本所在的DataNode
-	private Map<String, List<DataNodeInfo>> replicasByFilename =
-			new HashMap<String, List<DataNodeInfo>>();
+	private Map<String, List<DataNodeInfo>> replicasByFilename = new HashMap<String, List<DataNodeInfo>>();
 
 	//datanode管理组件
 	private DataNodeManager dataNodeManager;

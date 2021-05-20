@@ -73,6 +73,11 @@ public class DataNodeManager {
 		return datanodes.get(ip + "-" + hostname);
 	}
 
+	public void setStoredDataSize(String ip, String hostname, long storedDataSize) {
+		DataNodeInfo datanode = datanodes.get(ip + "-" + hostname);
+		datanode.setStoredDataSize(storedDataSize);
+	}
+
 	/**
 	 * datanode是否存活的监控线程
 	 * @author machi
