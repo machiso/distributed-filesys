@@ -31,9 +31,7 @@ public class DataNodeNIOServer extends Thread {
 	// 与NameNode进行通信的客户端
 	private NameNodeRpcClient namenodeRpcClient;
 
-	/**
-	 * NIOServer的初始化，监听端口、队列初始化、线程初始化
-	 */
+	//NIOServer的初始化，监听端口、队列初始化、线程初始化
 	public DataNodeNIOServer(NameNodeRpcClient namenodeRpcClient){
 		ServerSocketChannel serverSocketChannel = null;
 
@@ -62,9 +60,7 @@ public class DataNodeNIOServer extends Thread {
 	}
 
 	public void run() {
-		/**
-		 * 无限循环，等待IO多路复用方式监听请求
-		 */
+		//无限循环，等待IO多路复用方式监听请求
 		while(true){
 			try{
 				selector.select();
@@ -82,12 +78,7 @@ public class DataNodeNIOServer extends Thread {
 		}
 	}
 
-	/**
-	 * 处理请求分发
-	 * @param key
-	 * @throws IOException
-	 * @throws ClosedChannelException
-	 */
+	//处理请求分发
 	private void handleRequest(SelectionKey key)
 			throws IOException, ClosedChannelException {
 		SocketChannel channel = null;
@@ -249,8 +240,7 @@ public class DataNodeNIOServer extends Thread {
 				dir.mkdirs();
 			}
 
-			String absoluteFilename = dirPath + "\\" +
-					relativeFilenameSplited[relativeFilenameSplited.length - 1];
+			String absoluteFilename = dirPath + "\\" + relativeFilenameSplited[relativeFilenameSplited.length - 1];
 			filename.absoluteFilename = absoluteFilename;
 		}
 
@@ -277,6 +267,9 @@ public class DataNodeNIOServer extends Thread {
 			int filenameLength = filenameLengthBuffer.getInt();
 
 			byte[] filenameBytes = new byte[filenameLength];
+			//这里的意思是：
+			// 从buffer当前postion的位置，读取filenameLength个字节的数据放到filenameBytes数组中去
+			//从filenameBytes位置为0的地方开始开始放，放入filenameLength长度的数据
 			buffer.get(filenameBytes, 0, filenameLength);
 			String filename = new String(filenameBytes); // 这里返回的应该就是：/image/product/iphone.jpg
 

@@ -84,10 +84,10 @@ public class FileSystemImpl implements FileSystem{
         JSONObject jsonObject = JSONObject.parseObject(response.getDatanodeInfo());
 
         //拿到datanode的ip和hostname
-        String ip = jsonObject.getString("ip");
+        String port = jsonObject.getString("port");
         String hostname = jsonObject.getString("hostname");
 
-
+//        nioClient.sendFile(hostname,port,);
         return null;
     }
 

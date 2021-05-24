@@ -54,6 +54,10 @@ public class NIOClient {
 
 							buffer.putLong(fileSize); // long对应了8个字节，放到buffer里去
 							buffer.put(file);
+
+							//这里一定要flip一下，才能将数据发送出去
+							//这里buffer分配的字节数比较大，如果不执行flip的话，会将你剩余的空白数据发送出去
+							//flip之后会将之前塞入的数据发送
 							buffer.flip();
 
 							int sentData = channel.write(buffer);
