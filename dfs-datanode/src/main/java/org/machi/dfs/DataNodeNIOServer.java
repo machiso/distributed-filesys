@@ -1,8 +1,6 @@
 package org.machi.dfs;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
@@ -30,6 +28,9 @@ public class DataNodeNIOServer extends Thread {
 	private Map<String, CachedImage> cachedImages = new HashMap<String, CachedImage>();
 	// 与NameNode进行通信的客户端
 	private NameNodeRpcClient namenodeRpcClient;
+
+	public static final Integer SEND_FILE = 1;
+	public static final Integer READ_FILE = 2;
 
 	//NIOServer的初始化，监听端口、队列初始化、线程初始化
 	public DataNodeNIOServer(NameNodeRpcClient namenodeRpcClient){
@@ -131,63 +132,15 @@ public class DataNodeNIOServer extends Thread {
 					String remoteAddr = channel.getRemoteAddress().toString();
 					System.out.println("接收到客户端的请求：" + remoteAddr);
 
-					ByteBuffer buffer = ByteBuffer.allocate(10 * 1024);
-					// 从请求中解析文件名
-					// 已经是：F:\\development\\tmp1\\image\\product\\iphone.jpg
-					Filename filename = getFilename(channel, buffer);
-					System.out.println("从网络请求中解析出来文件名：" + filename);
-					if(filename == null) {
-						channel.close();
-						continue;
-					}
-					// 从请求中解析文件大小
-					long imageLength = getImageLength(channel, buffer);
-					System.out.println("从网络请求中解析出来文件大小：" + imageLength);
-					// 定义已经读取的文件大小
-					long hasReadImageLength = getHasReadImageLength(channel);
-					System.out.println("初始化已经读取的文件大小：" + hasReadImageLength);
+					if (cachedImages.containsKey(remoteAddr)){
 
-					// 构建针对本地文件的输出流
-					FileOutputStream imageOut = new FileOutputStream(filename.absoluteFilename);
-					FileChannel imageChannel = imageOut.getChannel();
-					imageChannel.position(imageChannel.size());
-
-					// 如果是第一次接收到请求，就应该把buffer里剩余的数据写入到文件里去
-					if(!cachedImages.containsKey(remoteAddr)) {
-						hasReadImageLength += imageChannel.write(buffer);
-						System.out.println("已经向本地磁盘文件写入了" + hasReadImageLength + "字节的数据");
-						buffer.clear();
-					}
-
-					// 循环不断的从channel里读取数据，并写入磁盘文件
-					int len = -1;
-					while((len = channel.read(buffer)) > 0) {
-						hasReadImageLength += len;
-						System.out.println("已经向本地磁盘文件写入了" + hasReadImageLength + "字节的数据");
-						buffer.flip();
-						imageChannel.write(buffer);
-						buffer.clear();
-					}
-					imageChannel.close();
-					imageOut.close();
-
-					// 判断一下，如果已经读取完毕，就返回一个成功给客户端
-					if(hasReadImageLength == imageLength) {
-						ByteBuffer outBuffer = ByteBuffer.wrap("SUCCESS".getBytes());
-						channel.write(outBuffer);
-						cachedImages.remove(remoteAddr);
-						System.out.println("文件读取完毕，返回响应给客户端: " + remoteAddr);
-
-						// 增量上报Master节点自己接收到了一个文件的副本
-						// /image/product/iphone.jpg
-						namenodeRpcClient.informReplicaReceived(filename.relativeFilename);
-					}
-					// 如果一个文件没有读完，缓存起来，等待下一次读取
-					else {
-						CachedImage cachedImage = new CachedImage(filename, imageLength, hasReadImageLength);
-						cachedImages.put(remoteAddr, cachedImage);
-						key.interestOps(SelectionKey.OP_READ);
-						System.out.println("文件没有读取完毕，等待下一次OP_READ请求，缓存文件：" + cachedImage);
+					}else {
+						int requestType = getRequestType(channel);
+						if (SEND_FILE == requestType){
+							sendFile(channel,remoteAddr,key); //发送文件
+						}else if (READ_FILE == requestType){
+							downloadFile(channel,key);//下载文件
+						}
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -202,6 +155,122 @@ public class DataNodeNIOServer extends Thread {
 			}
 		}
 
+	}
+
+	private void downloadFile(SocketChannel channel, SelectionKey key) throws Exception {
+		String remoteAddr = channel.getRemoteAddress().toString();
+
+		// 从请求中解析文件名
+		// 已经是：F:\\development\\tmp1\\image\\product\\iphone.jpg
+		Filename filename = getFilename(channel);
+		System.out.println("从网络请求中解析出来文件名：" + filename);
+		if(filename == null) {
+			channel.close();
+			return;
+		}
+
+		File file = new File(filename.absoluteFilename);
+		Long fileLength = file.length();
+
+		FileInputStream imageIn = new FileInputStream(filename.absoluteFilename);
+		FileChannel imageChannel = imageIn.getChannel();
+
+		// 循环不断的从channel里读取数据，并写入磁盘文件
+		ByteBuffer buffer = ByteBuffer.allocate(
+				Integer.valueOf(String.valueOf(fileLength)) * 2);
+		Long hasReadImageLength = 0L;
+		int len = -1;
+		while((len = imageChannel.read(buffer)) > 0) {
+			hasReadImageLength += len;
+			System.out.println("已经从本地磁盘文件读取了" + hasReadImageLength + "字节的数据");
+			buffer.flip();
+			channel.write(buffer);
+			buffer.clear();
+		}
+
+		imageChannel.close();
+		imageIn.close();
+
+		// 判断一下，如果已经读取完毕，就返回一个成功给客户端
+		if(hasReadImageLength == fileLength) {
+			System.out.println("文件发送完毕，给客户端: " + remoteAddr);
+			key.interestOps(key.interestOps() & ~SelectionKey.OP_READ);
+		}
+	}
+
+	private void sendFile(SocketChannel channel, String remoteAddr, SelectionKey key) throws Exception{
+		ByteBuffer buffer = ByteBuffer.allocate(10 * 1024);
+		// 从请求中解析文件名
+		// 已经是：F:\\development\\tmp1\\image\\product\\iphone.jpg
+		Filename filename = getFilename(channel, buffer);
+		System.out.println("从网络请求中解析出来文件名：" + filename);
+		if(filename == null) {
+			channel.close();
+			return;
+		}
+		// 从请求中解析文件大小
+		long imageLength = getImageLength(channel, buffer);
+		System.out.println("从网络请求中解析出来文件大小：" + imageLength);
+		// 定义已经读取的文件大小
+		long hasReadImageLength = getHasReadImageLength(channel);
+		System.out.println("初始化已经读取的文件大小：" + hasReadImageLength);
+
+		// 构建针对本地文件的输出流
+		FileOutputStream imageOut = new FileOutputStream(filename.absoluteFilename);
+		FileChannel imageChannel = imageOut.getChannel();
+		imageChannel.position(imageChannel.size());
+
+		// 如果是第一次接收到请求，就应该把buffer里剩余的数据写入到文件里去
+		if(!cachedImages.containsKey(remoteAddr)) {
+			hasReadImageLength += imageChannel.write(buffer);
+			System.out.println("已经向本地磁盘文件写入了" + hasReadImageLength + "字节的数据");
+			buffer.clear();
+		}
+
+		// 循环不断的从channel里读取数据，并写入磁盘文件
+		int len = -1;
+		while((len = channel.read(buffer)) > 0) {
+			hasReadImageLength += len;
+			System.out.println("已经向本地磁盘文件写入了" + hasReadImageLength + "字节的数据");
+			buffer.flip();
+			imageChannel.write(buffer);
+			buffer.clear();
+		}
+		imageChannel.close();
+		imageOut.close();
+
+		// 判断一下，如果已经读取完毕，就返回一个成功给客户端
+		if(hasReadImageLength == imageLength) {
+			ByteBuffer outBuffer = ByteBuffer.wrap("SUCCESS".getBytes());
+			channel.write(outBuffer);
+			cachedImages.remove(remoteAddr);
+			System.out.println("文件读取完毕，返回响应给客户端: " + remoteAddr);
+
+			// 增量上报Master节点自己接收到了一个文件的副本
+			// /image/product/iphone.jpg
+			namenodeRpcClient.informReplicaReceived(filename.relativeFilename);
+		}
+		// 如果一个文件没有读完，缓存起来，等待下一次读取
+		else {
+			CachedImage cachedImage = new CachedImage(filename, imageLength, hasReadImageLength);
+			cachedImages.put(remoteAddr, cachedImage);
+			key.interestOps(SelectionKey.OP_READ);
+			System.out.println("文件没有读取完毕，等待下一次OP_READ请求，缓存文件：" + cachedImage);
+		}
+	}
+
+	private int getRequestType(SocketChannel channel) {
+		try {
+			ByteBuffer buffer = ByteBuffer.allocate(4);
+			channel.read(buffer);
+			if (!buffer.hasRemaining()){
+				buffer.rewind();
+				return buffer.getInt();
+			}
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+		return -1;
 	}
 
 	/**

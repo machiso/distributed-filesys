@@ -76,19 +76,21 @@ public class FileSystemImpl implements FileSystem{
 
     @Override
     public byte[] download(String filename) throws Exception {
+        String dataodeInfo = getDownloadDatanode(filename);
+        JSONObject datainfo = JSONObject.parseObject(dataodeInfo);
+        //向datanode发送请求
+        nioClient.readFile(datainfo.getString("hostname"),datainfo.getInteger("port"),datainfo.getString("filename"));
+        return null;
+    }
+
+    private String getDownloadDatanode(String filename) {
         GetDataNodeForFileRequest request = GetDataNodeForFileRequest.newBuilder()
                 .setFilename(filename)
                 .build();
 
         GetDataNodeForFileResponse response = namenode.getDataNodeForFile(request);
-        JSONObject jsonObject = JSONObject.parseObject(response.getDatanodeInfo());
+        return response.getDatanodeInfo();
 
-        //拿到datanode的ip和hostname
-        String port = jsonObject.getString("port");
-        String hostname = jsonObject.getString("hostname");
-
-//        nioClient.sendFile(hostname,port,);
-        return null;
     }
 
     //分配双副本对应的数据节点

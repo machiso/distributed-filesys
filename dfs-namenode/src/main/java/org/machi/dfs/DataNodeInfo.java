@@ -15,15 +15,18 @@ public class DataNodeInfo implements Comparable<DataNodeInfo>{
 
 	private final String hostname;
 
+	private final  int nioPort;
+
 	//上次心跳发送的时间
 	private long lastHeatBeatTime;
 
 	//已经存储的数据大小
 	private long storedDataSize;
 
-	public DataNodeInfo(String ip,String hostname){
+	public DataNodeInfo(String ip,String hostname,int nioPort){
 		this.ip = ip;
 		this.hostname = hostname;
+		this.nioPort = nioPort;
 	}
 
 	public long getLastHeatBeatTime() {

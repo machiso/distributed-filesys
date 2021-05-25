@@ -24,8 +24,11 @@ public class DataNodeManager {
 	 * @param ip
 	 * @param hostname
 	 */
-	public Boolean register(String ip, String hostname) {
-		DataNodeInfo datanode = new DataNodeInfo(ip, hostname);
+	public Boolean register(String ip, String hostname,int nioPort) {
+		if (datanodes.containsKey(ip + "-" + hostname)){
+			return false;
+		}
+		DataNodeInfo datanode = new DataNodeInfo(ip, hostname, nioPort);
 		datanodes.put(ip + "-" + hostname, datanode);
 		System.out.println("DataNode注册：ip=" + ip + ",hostname=" + hostname);
 		return true;
@@ -39,6 +42,10 @@ public class DataNodeManager {
 	 */
 	public Boolean heartbeat(String ip, String hostname) {
 		DataNodeInfo datanode = datanodes.get(ip + "-" + hostname);
+		if (datanode == null){
+			//需要重新进行注册
+			return false;
+		}
 		datanode.setLastHeatBeatTime(System.currentTimeMillis());
 		System.out.println("DataNode发送心跳：ip=" + ip + ",hostname=" + hostname);
 		return true;

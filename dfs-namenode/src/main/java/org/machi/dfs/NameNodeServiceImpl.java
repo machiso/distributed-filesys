@@ -9,6 +9,7 @@ import com.zhss.dfs.namenode.rpc.service.NameNodeServiceGrpc;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -58,13 +59,15 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 	}
 
 
+	//datanode来注册的时候，如果datanode短暂停机，重启之后来注册。
+	//此时namenode保存了有信息，就返回注册失败，datanode就不用全量上报
 	@Override
 	public void register(RegisterRequest request,
 						 StreamObserver<RegisterResponse> responseObserver) {
-		datanodeManager.register(request.getIp(), request.getHostname());
+		Boolean registerResult = datanodeManager.register(request.getIp(), request.getHostname(),request.getNioPort());
 
 		RegisterResponse response = RegisterResponse.newBuilder()
-				.setStatus(STATUS_SUCCESS)
+				.setStatus(registerResult ? STATUS_SUCCESS : STATUS_FAILURE)
 				.build();
 
 		responseObserver.onNext(response);
@@ -75,10 +78,17 @@ public class NameNodeServiceImpl implements NameNodeServiceGrpc.NameNodeService 
 	@Override
 	public void heartbeat(HeartbeatRequest request,
 						  StreamObserver<HeartbeatResponse> responseObserver) {
-		datanodeManager.heartbeat(request.getIp(), request.getHostname());
+		Boolean heartbeatResult = datanodeManager.heartbeat(request.getIp(), request.getHostname());
+
+		List<Command> commands = new ArrayList<>();
+		if (!heartbeatResult){
+			commands.add(new Command(Command.REGISTER)); //注册
+			commands.add(new Command(Command.REPORT_COMPLETE_STORAGE_INFO)); //全量上报
+		}
 
 		HeartbeatResponse response = HeartbeatResponse.newBuilder()
-				.setStatus(STATUS_SUCCESS)
+				.setStatus(heartbeatResult ? STATUS_SUCCESS : STATUS_FAILURE)
+				.setCommands(JSONArray.toJSONString(commands))
 				.build();
 
 		responseObserver.onNext(response);

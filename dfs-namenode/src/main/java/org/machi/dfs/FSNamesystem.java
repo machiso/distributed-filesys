@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * 负责管理元数据的核心组件
@@ -35,6 +36,8 @@ public class FSNamesystem {
 
 	//datanode管理组件
 	private DataNodeManager dataNodeManager;
+
+	private ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
 	public FSNamesystem(DataNodeManager dataNodeManager) {
 		this.directory = new FSDirectory();
@@ -256,7 +259,8 @@ public class FSNamesystem {
 	}
 
 	public void addReceivedReplica(String hostname, String ip, String filename) {
-		synchronized(replicasByFilename) {
+		try {
+			readWriteLock.writeLock().lock();
 			List<DataNodeInfo> replicas = replicasByFilename.get(filename);
 			if(replicas == null) {
 				replicas = new ArrayList<DataNodeInfo>();
@@ -264,11 +268,14 @@ public class FSNamesystem {
 			}
 			DataNodeInfo datanode = dataNodeManager.getDatanode(ip, hostname);
 			replicas.add(datanode);
+		}finally {
+			readWriteLock.writeLock().unlock();
 		}
 	}
 
 	public DataNodeInfo getDataNodeForFile(String filename) {
-		synchronized (replicasByFilename){
+		try {
+			readWriteLock.readLock().lock();
 			List<DataNodeInfo> dataNodeInfos = replicasByFilename.get(filename);
 			int size = dataNodeInfos.size();
 
@@ -276,6 +283,8 @@ public class FSNamesystem {
 			int index = random.nextInt(size);
 
 			return dataNodeInfos.get(index);
+		}finally {
+			readWriteLock.readLock().unlock();
 		}
 	}
 }

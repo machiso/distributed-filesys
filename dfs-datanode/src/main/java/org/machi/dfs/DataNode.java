@@ -1,68 +1,38 @@
 package org.machi.dfs;
 
-import java.io.File;
-import java.util.Arrays;
-
 public class DataNode {
 
 	private volatile Boolean shouldRun;
 
 	private NameNodeRpcClient nameNodeRpcClient;
 
+	private StorageManager storageManager;
+
+	private HeartBeatManager heartBeatManager;
+
 	public DataNode() {
 		this.shouldRun = true;
 		this.nameNodeRpcClient = new NameNodeRpcClient();
-		if (nameNodeRpcClient.register()){
-			nameNodeRpcClient.startHeartbeat();
-
-			StorageInfo storageInfo = getStorageInfo();
-			if (storageInfo != null){
-				//全量上报
-				nameNodeRpcClient.reportCompleteStorageInfo(storageInfo);
-			}
-
-			DataNodeNIOServer nioServer = new DataNodeNIOServer(nameNodeRpcClient);
-			nioServer.start();
-		}else {
+		//注册成功之后再全量上报
+		if (!nameNodeRpcClient.register()){
 			System.out.println("向NameNode注册失败，直接退出......");
 			System.exit(1);
 		}
-	}
 
-	/**
-	 * 获取存储信息
-	 * @return
-	 */
-	private StorageInfo getStorageInfo() {
-		StorageInfo storageInfo = new StorageInfo();
-
-		File file = new File(DataNodeConfig.DATA_DIR);
-		if (!file.exists()){
-			return null;
-		}
-		File[] children = file.listFiles();
-		if (children == null || children.length == 0){
-			return null;
+		//storageManager组件
+		this.storageManager = new StorageManager();
+		StorageInfo storageInfo = storageManager.getStorageInfo();
+		if (storageInfo != null){
+			//全量上报
+			nameNodeRpcClient.reportCompleteStorageInfo(storageInfo);
 		}
 
-		Arrays.stream(children).forEach(child -> scanfile(child,storageInfo));
+		//心跳组件
+		heartBeatManager = new HeartBeatManager(nameNodeRpcClient,storageManager);
+		heartBeatManager.start();
 
-		return storageInfo;
-	}
-
-	//扫描文件
-	private void scanfile(File dir,StorageInfo storageInfo) {
-		if (dir.isFile()){
-			String path = dir.getPath();
-			path = path.substring(DataNodeConfig.DATA_DIR.length() - 2);
-			// \image\product\iphone.jpg
-			path = path.replace("\\\\", "/"); // /image/product/iphone.jpg
-
-			storageInfo.addFilename(path);
-			storageInfo.addStoredDataSize(dir.length());
-
-			return;
-		}
+		DataNodeNIOServer nioServer = new DataNodeNIOServer(nameNodeRpcClient);
+		nioServer.start();
 	}
 
 	/**

@@ -34,8 +34,13 @@ public class NameNodeRpcClient {
 	}
 
 
-	public void startHeartbeat() {
-		new HeartbeatThread().start();
+	public HeartbeatResponse heartbeat() {
+		HeartbeatRequest request = HeartbeatRequest.newBuilder()
+				.setIp(DATANODE_IP)
+				.setHostname(DATANODE_HOSTNAME)
+				.setNioPort(NIO_PORT)
+				.build();
+		return namenode.heartbeat(request);
 	}
 
 	//上报增量数据到namendoe
@@ -58,30 +63,5 @@ public class NameNodeRpcClient {
 				.build();
 
 		namenode.reportCompleteStorageInfo(request);
-	}
-
-	private class HeartbeatThread extends Thread{
-		@Override
-		public void run() {
-			while (true){
-				try {
-					String ip = "127.0.0.1";
-					String hostname = "dfs-data-01";
-
-					HeartbeatRequest heartbeatRequest = HeartbeatRequest.newBuilder()
-							.setIp(ip)
-							.setHostname(hostname)
-							.build();
-
-					HeartbeatResponse heartbeatResponse = namenode.heartbeat(heartbeatRequest);
-					System.out.println("收到namenode返回的心跳响应"+heartbeatResponse.getStatus());
-
-					Thread.sleep(10 * 1000);
-				}
-				catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
 	}
 }

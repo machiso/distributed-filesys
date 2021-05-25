@@ -26,9 +26,7 @@ public class NameNodeRpcServer {
 	 */
 	private DataNodeManager datanodeManager;
 	
-	public NameNodeRpcServer(
-			FSNamesystem namesystem, 
-			DataNodeManager datanodeManager) {
+	public NameNodeRpcServer(FSNamesystem namesystem, DataNodeManager datanodeManager) {
 		this.namesystem = namesystem;
 		this.datanodeManager = datanodeManager;
 	}
