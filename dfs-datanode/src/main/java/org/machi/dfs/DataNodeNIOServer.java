@@ -1,6 +1,9 @@
 package org.machi.dfs;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
@@ -10,29 +13,47 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static org.machi.dfs.DataNodeConfig.*;
+import static org.machi.dfs.DataNodeConfig.DATA_DIR;
+import static org.machi.dfs.DataNodeConfig.NIO_PORT;
 
+
+/**
+ * 数据节点的NIOServer
+ * @author zhonghuashishan
+ *
+ */
 public class DataNodeNIOServer extends Thread {
+
+	public static final Integer SEND_FILE = 1;
+	public static final Integer READ_FILE = 2;
+	public static final Integer NIO_BUFFER_SIZE = 10 * 1024;
 
 	// NIO的selector，负责多路复用监听多个连接的请求
 	private Selector selector;
 	// 内存队列，无界队列
 	private List<LinkedBlockingQueue<SelectionKey>> queues = new ArrayList<LinkedBlockingQueue<SelectionKey>>();
-	// 缓存的没读取完的文件数据
-	private Map<String, CachedImage> cachedImages = new HashMap<String, CachedImage>();
+	// 缓存没读取完的文件数据
+	private Map<String, CachedRequest> cachedRequests = new ConcurrentHashMap<String, CachedRequest>();
+	// 缓存没读取完的请求类型
+	private Map<String, ByteBuffer> requestTypeByClient = new ConcurrentHashMap<String, ByteBuffer>();
+	// 缓存没读取完的文件名大小
+	private Map<String, ByteBuffer> filenameLengthByClient = new ConcurrentHashMap<String, ByteBuffer>();
+	// 缓存没读取完的文件名
+	private Map<String, ByteBuffer> filenameByClient = new ConcurrentHashMap<String, ByteBuffer>();
+	// 缓存没读取完的文件大小
+	private Map<String, ByteBuffer> fileLengthByClient = new ConcurrentHashMap<String, ByteBuffer>();
 	// 与NameNode进行通信的客户端
 	private NameNodeRpcClient namenodeRpcClient;
 
-	public static final Integer SEND_FILE = 1;
-	public static final Integer READ_FILE = 2;
-
-	//NIOServer的初始化，监听端口、队列初始化、线程初始化
+	/**
+	 * NIOServer的初始化，监听端口、队列初始化、线程初始化
+	 */
 	public DataNodeNIOServer(NameNodeRpcClient namenodeRpcClient){
 		ServerSocketChannel serverSocketChannel = null;
 
@@ -54,14 +75,13 @@ public class DataNodeNIOServer extends Thread {
 				new Worker(queues.get(i)).start();
 			}
 
-			System.out.println("DataNode NIOServer已经启动，开始监听端口：" + NIO_PORT);
+			System.out.println("NIOServer已经启动，开始监听端口：" + NIO_PORT);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public void run() {
-		//无限循环，等待IO多路复用方式监听请求
 		while(true){
 			try{
 				selector.select();
@@ -70,7 +90,7 @@ public class DataNodeNIOServer extends Thread {
 				while(keysIterator.hasNext()){
 					SelectionKey key = (SelectionKey) keysIterator.next();
 					keysIterator.remove();
-					handleRequest(key);
+					handleEvents(key);
 				}
 			}
 			catch(Throwable t){
@@ -79,8 +99,7 @@ public class DataNodeNIOServer extends Thread {
 		}
 	}
 
-	//处理请求分发
-	private void handleRequest(SelectionKey key)
+	private void handleEvents(SelectionKey key)
 			throws IOException, ClosedChannelException {
 		SocketChannel channel = null;
 
@@ -94,9 +113,9 @@ public class DataNodeNIOServer extends Thread {
 				}
 			}
 			else if(key.isReadable()){
-				channel = (SocketChannel) key.channel();
-				String remoteAddr = channel.getRemoteAddress().toString();
-				int queueIndex = remoteAddr.hashCode() % queues.size();
+				channel = (SocketChannel)key.channel();
+				String client = channel.getRemoteAddress().toString();
+				int queueIndex = client.hashCode() % queues.size();
 				queues.get(queueIndex).put(key);
 			}
 		}
@@ -123,25 +142,8 @@ public class DataNodeNIOServer extends Thread {
 
 				try {
 					SelectionKey key = queue.take();
-
 					channel = (SocketChannel) key.channel();
-					if(!channel.isOpen()) {
-						channel.close();
-						continue;
-					}
-					String remoteAddr = channel.getRemoteAddress().toString();
-					System.out.println("接收到客户端的请求：" + remoteAddr);
-
-					if (cachedImages.containsKey(remoteAddr)){
-
-					}else {
-						int requestType = getRequestType(channel);
-						if (SEND_FILE == requestType){
-							sendFile(channel,remoteAddr,key); //发送文件
-						}else if (READ_FILE == requestType){
-							downloadFile(channel,key);//下载文件
-						}
-					}
+					handleRequest(channel, key);
 				} catch (Exception e) {
 					e.printStackTrace();
 					if(channel != null) {
@@ -157,62 +159,244 @@ public class DataNodeNIOServer extends Thread {
 
 	}
 
-	private void downloadFile(SocketChannel channel, SelectionKey key) throws Exception {
+	/**
+	 * 处理客户端发送过来的请求
+	 * @param channel
+	 * @param key
+	 * @throws Exception
+	 */
+	private void handleRequest(SocketChannel channel, SelectionKey key) throws Exception {
+		// 假如说你这个一次读取的数据里包含了多个文件的话
+		// 这个时候我们会先读取文件名，然后根据文件的大小去读取这么多的数据
 		String remoteAddr = channel.getRemoteAddress().toString();
+		System.out.println("接收到客户端的请求：" + remoteAddr);
 
-		// 从请求中解析文件名
-		// 已经是：F:\\development\\tmp1\\image\\product\\iphone.jpg
-		Filename filename = getFilename(channel);
-		System.out.println("从网络请求中解析出来文件名：" + filename);
-		if(filename == null) {
-			channel.close();
-			return;
-		}
+		// 需要先提取出来这次请求是什么类型：1 发送文件；2 读取文件
+		if(cachedRequests.containsKey(remoteAddr)) {
+			handleSendFileRequest(channel, key);
+		} else {
+			Integer requestType = getRequestType(channel); // 但是此时channel的position肯定也变为了4
 
-		File file = new File(filename.absoluteFilename);
-		Long fileLength = file.length();
+			if(requestType == null) {
+				return;
+			}
 
-		FileInputStream imageIn = new FileInputStream(filename.absoluteFilename);
-		FileChannel imageChannel = imageIn.getChannel();
+			// 拆包，就是说人家一次请求，本来是包含了：requestType + filenameLength + filename [+ imageLength + image]
+			// 这次OP_READ事件，就读取到了requestType的4个字节中的2个字节，剩余的数据
+			// 就被放在了下一次OP_READ事件中了
 
-		// 循环不断的从channel里读取数据，并写入磁盘文件
-		ByteBuffer buffer = ByteBuffer.allocate(
-				Integer.valueOf(String.valueOf(fileLength)) * 2);
-		Long hasReadImageLength = 0L;
-		int len = -1;
-		while((len = imageChannel.read(buffer)) > 0) {
-			hasReadImageLength += len;
-			System.out.println("已经从本地磁盘文件读取了" + hasReadImageLength + "字节的数据");
-			buffer.flip();
-			channel.write(buffer);
-			buffer.clear();
-		}
-
-		imageChannel.close();
-		imageIn.close();
-
-		// 判断一下，如果已经读取完毕，就返回一个成功给客户端
-		if(hasReadImageLength == fileLength) {
-			System.out.println("文件发送完毕，给客户端: " + remoteAddr);
-			key.interestOps(key.interestOps() & ~SelectionKey.OP_READ);
+			if(SEND_FILE.equals(requestType)) {
+				handleSendFileRequest(channel, key);
+			} else if(READ_FILE.equals(requestType)) {
+				handleReadFileRequest(channel, key);
+			}
 		}
 	}
 
-	private void sendFile(SocketChannel channel, String remoteAddr, SelectionKey key) throws Exception{
-		ByteBuffer buffer = ByteBuffer.allocate(10 * 1024);
-		// 从请求中解析文件名
-		// 已经是：F:\\development\\tmp1\\image\\product\\iphone.jpg
-		Filename filename = getFilename(channel, buffer);
+	/**
+	 * 获取本次请求的类型
+	 * @param channel
+	 * @return
+	 */
+	public Integer getRequestType(SocketChannel channel) throws Exception {
+		Integer requestType = null;
+		String client = channel.getRemoteAddress().toString();
+
+		if(getCachedRequest(client).reqeustType != null) {
+			return getCachedRequest(client).reqeustType;
+		}
+
+		ByteBuffer requestTypeBuffer = null;
+		if(requestTypeByClient.containsKey(client)) {
+			requestTypeBuffer = requestTypeByClient.get(client);
+		} else {
+			requestTypeBuffer = ByteBuffer.allocate(4);
+		}
+
+		channel.read(requestTypeBuffer);  // 此时requestType ByteBuffer，position跟limit都是4，remaining是0
+
+		if(!requestTypeBuffer.hasRemaining()) {
+			// 已经读取出来了4个字节，可以提取出来requestType了
+			requestTypeBuffer.rewind(); // 将position变为0，limit还是维持着4
+			requestType = requestTypeBuffer.getInt();
+			System.out.println("从请求中解析出来本次请求的类型：" + requestType);
+
+			requestTypeByClient.remove(client);
+
+			CachedRequest cachedRequest = getCachedRequest(client);
+			cachedRequest.reqeustType = requestType;
+		} else {
+			requestTypeByClient.put(client, requestTypeBuffer);
+		}
+
+		return requestType;
+	}
+
+	/**
+	 * 获取缓存的请求
+	 * @param client
+	 * @return
+	 */
+	private CachedRequest getCachedRequest(String client) {
+		CachedRequest cachedRequest = cachedRequests.get(client);
+		if(cachedRequest == null) {
+			cachedRequests.put(client, new CachedRequest());
+		}
+		return cachedRequest;
+	}
+
+	/**
+	 * 获取文件名同时转换为本地磁盘目录中的绝对路径
+	 * @param channel
+	 * @return
+	 * @throws Exception
+	 */
+	private Filename getFilename(SocketChannel channel) throws Exception {
+		Filename filename = new Filename();
+		String client = channel.getRemoteAddress().toString();
+
+		if(getCachedRequest(client).filename != null) {
+			return getCachedRequest(client).filename;
+		} else {
+			String relativeFilename = getRelativeFilename(channel);
+			if(relativeFilename == null) {
+				return null;
+			}
+			// /image/product/iphone.jpg
+			filename.relativeFilename = relativeFilename;
+
+			String absoluteFilename = getAbsoluteFilename(relativeFilename);
+			filename.absoluteFilename = absoluteFilename;
+
+			CachedRequest cachedRequest = getCachedRequest(client);
+			cachedRequest.filename = filename;
+		}
+
+		return filename;
+	}
+
+	/**
+	 * 获取相对路径的文件名
+	 * @param channel
+	 * @return
+	 */
+	private String getRelativeFilename(SocketChannel channel) throws Exception {
+		String client = channel.getRemoteAddress().toString();
+
+		Integer filenameLength = null;
+		String filename = null;
+
+		// 读取文件名的大小
+		if(!filenameByClient.containsKey(client)) {
+			ByteBuffer filenameLengthBuffer = null;
+			if(filenameLengthByClient.containsKey(client)) {
+				filenameLengthBuffer = filenameLengthByClient.get(client);
+			} else {
+				filenameLengthBuffer = ByteBuffer.allocate(4);
+			}
+
+			channel.read(filenameLengthBuffer);
+
+			if(!filenameLengthBuffer.hasRemaining()) {
+				filenameLengthBuffer.rewind();
+				filenameLength = filenameLengthBuffer.getInt();
+				filenameLengthByClient.remove(client);
+			} else {
+				filenameLengthByClient.put(client, filenameLengthBuffer);
+			}
+		}
+
+		// 读取文件名
+		ByteBuffer filenameBuffer = null;
+		if(filenameByClient.containsKey(client)) {
+			filenameBuffer = filenameByClient.get(client);
+		} else {
+			filenameBuffer = ByteBuffer.allocate(filenameLength);
+		}
+
+		channel.read(filenameBuffer);
+
+		if(!filenameBuffer.hasRemaining()) {
+			filenameBuffer.rewind();
+			filename = new String(filenameBuffer.array());
+			filenameByClient.remove(client);
+		} else {
+			filenameByClient.put(client, filenameBuffer);
+		}
+
+		return filename;
+	}
+
+	/**
+	 * 获取文件在本地磁盘上的绝对路径名
+	 * @param relativeFilename
+	 * @return
+	 * @throws Exception
+	 */
+	private String getAbsoluteFilename(String relativeFilename) throws Exception {
+		String[] relativeFilenameSplited = relativeFilename.split("/");
+
+		String dirPath = DATA_DIR;
+		for(int i = 0; i < relativeFilenameSplited.length - 1; i++) {
+			if(i == 0) {
+				continue;
+			}
+			dirPath += "\\" + relativeFilenameSplited[i];
+		}
+
+		File dir = new File(dirPath);
+		if(!dir.exists()) {
+			return null;
+		}
+
+		String absoluteFilename = dirPath + "\\" +
+				relativeFilenameSplited[relativeFilenameSplited.length - 1];
+		return absoluteFilename;
+	}
+
+	/**
+	 * 从网络请求中获取文件大小
+	 * @param channel
+	 * @return
+	 * @throws Exception
+	 */
+	private Long getFileLength(SocketChannel channel) throws Exception {
+		Long fileLength = null;
+		String client = channel.getRemoteAddress().toString();
+
+		if(getCachedRequest(client).fileLength != null) {
+			return getCachedRequest(client).fileLength;
+		} else {
+			ByteBuffer fileLengthBuffer = ByteBuffer.allocate(8);
+			channel.read(fileLengthBuffer);
+			if(!fileLengthBuffer.hasRemaining()) {
+				fileLength = fileLengthBuffer.getLong();
+				fileLengthByClient.remove(client);
+				getCachedRequest(client).fileLength = fileLength;
+			} else {
+				fileLengthByClient.put(client, fileLengthBuffer);
+			}
+		}
+
+		return fileLength;
+	}
+
+	private void handleSendFileRequest(SocketChannel channel, SelectionKey key) throws Exception {
+		String remoteAddr = channel.getRemoteAddress().toString();
+
+		Filename filename = getFilename(channel);
 		System.out.println("从网络请求中解析出来文件名：" + filename);
 		if(filename == null) {
-			channel.close();
 			return;
 		}
 		// 从请求中解析文件大小
-		long imageLength = getImageLength(channel, buffer);
-		System.out.println("从网络请求中解析出来文件大小：" + imageLength);
+		Long fileLength = getFileLength(channel);
+		System.out.println("从网络请求中解析出来文件大小：" + fileLength);
+		if(fileLength == null) {
+			return;
+		}
 		// 定义已经读取的文件大小
-		long hasReadImageLength = getHasReadImageLength(channel);
+		long hasReadImageLength = getHasReadFileLength(channel);
 		System.out.println("初始化已经读取的文件大小：" + hasReadImageLength);
 
 		// 构建针对本地文件的输出流
@@ -220,14 +404,8 @@ public class DataNodeNIOServer extends Thread {
 		FileChannel imageChannel = imageOut.getChannel();
 		imageChannel.position(imageChannel.size());
 
-		// 如果是第一次接收到请求，就应该把buffer里剩余的数据写入到文件里去
-		if(!cachedImages.containsKey(remoteAddr)) {
-			hasReadImageLength += imageChannel.write(buffer);
-			System.out.println("已经向本地磁盘文件写入了" + hasReadImageLength + "字节的数据");
-			buffer.clear();
-		}
-
 		// 循环不断的从channel里读取数据，并写入磁盘文件
+		ByteBuffer buffer = ByteBuffer.allocate(10 * 1024);
 		int len = -1;
 		while((len = channel.read(buffer)) > 0) {
 			hasReadImageLength += len;
@@ -240,138 +418,55 @@ public class DataNodeNIOServer extends Thread {
 		imageOut.close();
 
 		// 判断一下，如果已经读取完毕，就返回一个成功给客户端
-		if(hasReadImageLength == imageLength) {
+		if(hasReadImageLength == fileLength) {
 			ByteBuffer outBuffer = ByteBuffer.wrap("SUCCESS".getBytes());
 			channel.write(outBuffer);
-			cachedImages.remove(remoteAddr);
+			cachedRequests.remove(remoteAddr);
 			System.out.println("文件读取完毕，返回响应给客户端: " + remoteAddr);
 
 			// 增量上报Master节点自己接收到了一个文件的副本
 			// /image/product/iphone.jpg
 			namenodeRpcClient.informReplicaReceived(filename.relativeFilename);
-		}
-		// 如果一个文件没有读完，缓存起来，等待下一次读取
-		else {
-			CachedImage cachedImage = new CachedImage(filename, imageLength, hasReadImageLength);
-			cachedImages.put(remoteAddr, cachedImage);
-			key.interestOps(SelectionKey.OP_READ);
-			System.out.println("文件没有读取完毕，等待下一次OP_READ请求，缓存文件：" + cachedImage);
+			System.out.println("增量上报收到的文件副本给NameNode节点......");
+
+			key.interestOps(key.interestOps() & ~SelectionKey.OP_READ);
 		}
 	}
 
-	private int getRequestType(SocketChannel channel) {
-		try {
-			ByteBuffer buffer = ByteBuffer.allocate(4);
-			channel.read(buffer);
-			if (!buffer.hasRemaining()){
-				buffer.rewind();
-				return buffer.getInt();
-			}
-		}catch (Exception e){
-			e.printStackTrace();
-		}
-		return -1;
-	}
-
-	/**
-	 * 从网络请求中获取文件名
-	 * @param channel
-	 * @param buffer
-	 * @return
-	 * @throws Exception
-	 */
-	private Filename getFilename(SocketChannel channel, ByteBuffer buffer) throws Exception {
-		Filename filename = new Filename();
+	private void handleReadFileRequest(SocketChannel channel, SelectionKey key) throws Exception {
 		String remoteAddr = channel.getRemoteAddress().toString();
 
-		if(cachedImages.containsKey(remoteAddr)) {
-			filename = cachedImages.get(remoteAddr).filename;
-		} else {
-			String relativeFilename = getRelativeFilename(channel, buffer);
-			if(relativeFilename == null) {
-				return null;
-			}
-			// /image/product/iphone.jpg
-			filename.relativeFilename = relativeFilename;
-
-			String[] relativeFilenameSplited = relativeFilename.split("/");
-
-			String dirPath = DATA_DIR;
-			for(int i = 0; i < relativeFilenameSplited.length - 1; i++) {
-				if(i == 0) {
-					continue;
-				}
-				dirPath += "\\" + relativeFilenameSplited[i];
-			}
-
-			File dir = new File(dirPath);
-			if(!dir.exists()) {
-				dir.mkdirs();
-			}
-
-			String absoluteFilename = dirPath + "\\" + relativeFilenameSplited[relativeFilenameSplited.length - 1];
-			filename.absoluteFilename = absoluteFilename;
+		// 从请求中解析文件名
+		// 已经是：F:\\development\\tmp1\\image\\product\\iphone.jpg
+		Filename filename = getFilename(channel);
+		System.out.println("从网络请求中解析出来文件名：" + filename);
+		if(filename == null) {
+			return;
 		}
 
-		return filename;
-	}
+		File file = new File(filename.absoluteFilename);
+		Long fileLength = file.length();
 
-	/**
-	 * 从网络请求中获取相对文件名
-	 * @param channel
-	 * @param buffer
-	 * @return
-	 */
-	private String getRelativeFilename(SocketChannel channel, ByteBuffer buffer) throws Exception {
-		int len = channel.read(buffer); // position就往前推动了，必须得先flip一下，让position回到0
-		if(len > 0) {
-			buffer.flip();
+		FileInputStream imageIn = new FileInputStream(filename.absoluteFilename);
+		FileChannel imageChannel = imageIn.getChannel();
 
-			byte[] filenameLengthBytes = new byte[4];
-			buffer.get(filenameLengthBytes, 0, 4);
+		// 循环不断的从channel里读取数据，并写入磁盘文件
+		ByteBuffer buffer = ByteBuffer.allocate(
+				8 + Integer.valueOf(String.valueOf(fileLength)));
+		buffer.putLong(fileLength);
+		int hasReadImageLength = imageChannel.read(buffer);
 
-			ByteBuffer filenameLengthBuffer = ByteBuffer.allocate(4);
-			filenameLengthBuffer.put(filenameLengthBytes);
-			filenameLengthBuffer.flip();
-			int filenameLength = filenameLengthBuffer.getInt();
+		buffer.rewind();
+		channel.write(buffer);
 
-			byte[] filenameBytes = new byte[filenameLength];
-			//这里的意思是：
-			// 从buffer当前postion的位置，读取filenameLength个字节的数据放到filenameBytes数组中去
-			//从filenameBytes位置为0的地方开始开始放，放入filenameLength长度的数据
-			buffer.get(filenameBytes, 0, filenameLength);
-			String filename = new String(filenameBytes); // 这里返回的应该就是：/image/product/iphone.jpg
+		imageChannel.close();
+		imageIn.close();
 
-			return filename;
+		// 判断一下，如果已经读取完毕，就返回一个成功给客户端
+		if(hasReadImageLength == fileLength) {
+			System.out.println("文件发送完毕，给客户端: " + remoteAddr);
+			key.interestOps(key.interestOps() & ~SelectionKey.OP_READ);
 		}
-
-		return null;
-	}
-
-	/**
-	 * 从网络请求中获取文件大小
-	 * @param channel
-	 * @param buffer
-	 * @return
-	 * @throws Exception
-	 */
-	private Long getImageLength(SocketChannel channel, ByteBuffer buffer) throws Exception {
-		Long imageLength = 0L;
-		String remoteAddr = channel.getRemoteAddress().toString();
-
-		if(cachedImages.containsKey(remoteAddr)) {
-			imageLength = cachedImages.get(remoteAddr).imageLength;
-		} else {
-			byte[] imageLengthBytes = new byte[8];
-			buffer.get(imageLengthBytes, 0, 8);
-
-			ByteBuffer imageLengthBuffer = ByteBuffer.allocate(8);
-			imageLengthBuffer.put(imageLengthBytes);
-			imageLengthBuffer.flip();
-			imageLength = imageLengthBuffer.getLong();
-		}
-
-		return imageLength;
 	}
 
 	/**
@@ -380,16 +475,19 @@ public class DataNodeNIOServer extends Thread {
 	 * @return
 	 * @throws Exception
 	 */
-	private Long getHasReadImageLength(SocketChannel channel) throws Exception {
-		long hasReadImageLength = 0;
-		String remoteAddr = channel.getRemoteAddress().toString();
-		if(cachedImages.containsKey(remoteAddr)) {
-			hasReadImageLength = cachedImages.get(remoteAddr).hasReadImageLength;
+	private Long getHasReadFileLength(SocketChannel channel) throws Exception {
+		String client = channel.getRemoteAddress().toString();
+		if(getCachedRequest(client).hasReadFileLength != null) {
+			return getCachedRequest(client).hasReadFileLength;
 		}
-		return hasReadImageLength;
+		return 0L;
 	}
 
-
+	/**
+	 * 文件名
+	 * @author zhonghuashishan
+	 *
+	 */
 	class Filename {
 
 		// 相对路径名
@@ -405,27 +503,16 @@ public class DataNodeNIOServer extends Thread {
 	}
 
 	/**
-	 * 缓存好的文件
+	 * 缓存文件
 	 * @author zhonghuashishan
 	 *
 	 */
-	class CachedImage {
+	class CachedRequest {
 
+		Integer reqeustType;
 		Filename filename;
-		long imageLength;
-		long hasReadImageLength;
-
-		public CachedImage(Filename filename, long imageLength, long hasReadImageLength) {
-			this.filename = filename;
-			this.imageLength = imageLength;
-			this.hasReadImageLength = hasReadImageLength;
-		}
-
-		@Override
-		public String toString() {
-			return "CachedImage [filename=" + filename + ", imageLength=" + imageLength + ", hasReadImageLength="
-					+ hasReadImageLength + "]";
-		}
+		Long fileLength;
+		Long hasReadFileLength;
 
 	}
 
